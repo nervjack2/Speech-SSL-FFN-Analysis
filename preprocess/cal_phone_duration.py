@@ -76,8 +76,6 @@ def main(mfa_json, save_pth, mode):
         group_dur_dict[k] = new_v
 
     print(f"Probability = {[x/sum(count) for x in count]}")
-    # Normal: [0.4528829946251948, 0.31544381897401647, 0.23167318640078874]
-    # Extreme: [0.2216656595532657, 0.6839307105980134, 0.09440362984872097]
    
     with open(save_pth, 'w') as fp:
         json.dump(group_dur_dict, fp)

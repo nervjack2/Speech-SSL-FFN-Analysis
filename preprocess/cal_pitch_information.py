@@ -29,14 +29,13 @@ def discretize(data_pth, save_pth, mode):
         for v in value:
             if v != 0:
                 values.append(v)
+    print(values)
     if 'extreme' not in mode:
         percent = [33,66]
         t = [np.percentile(values, percent[i]) for i in range(2)] 
-        # Normal: [129.03225806451613, 179.77528089887642]
     else:
         percent = [10,90]
         t = [np.percentile(values, percent[i]) for i in range(2)] 
-        # Extreme: [95.80838323353294, 222.91946630147046]
     keys = {}
     for key, value in tqdm(data.items()):
         new_value = []
@@ -59,7 +58,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--data-pth', help='Dataset directory in extract mode. JSON path in discretize mode')
     parser.add_argument('-s', '--save-pth', help='Result save path')
-    parser.add_argument('-m', '--mode', help='Mode', choices=['extract','discretize', 'discretize-extreme'])
+    parser.add_argument('-m', '--mode', help='Mode', choices=['extract', 'discretize', 'discretize-extreme'])
     args = parser.parse_args()
     if args.mode == 'extract':
         extract(**vars(args))

@@ -3,6 +3,7 @@ import json
 
 libri_spk_info = sys.argv[1] # SPEAKER.txt
 save_pth = sys.argv[2]
+dataset_name = sys.argv[3]
 
 keys = {}
 with open(libri_spk_info, 'r') as fp:
@@ -13,7 +14,7 @@ with open(libri_spk_info, 'r') as fp:
         ID = ID.strip()
         gender = gender.strip()
         dataset = dataset.strip()
-        if dataset == 'test-clean':
+        if dataset == dataset_name:
             keys[ID] = gender
 
 with open(save_pth, 'w') as fp:
