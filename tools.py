@@ -154,6 +154,7 @@ def sort_by_same_phone(phoneme):
     return new_list
 
 def sort_voiced_unvoiced(phoneme):
+    # ARPABET
     phoneme_type = {
         "vowels": [
             'IY', 'IH', 'EH', 'AE', 'AA', 'AH', 'AO', 
@@ -179,4 +180,5 @@ def sort_voiced_unvoiced(phoneme):
         elif n in phoneme_type["unvoiced-consonants"]:
             unvoiced_c.append(p)
     num_type = [len(voiced_v), len(voiced_c), len(unvoiced_c)]
+    print(f"There are {sum(num_type)} keys after filtering out silence and unrecognized phone")
     return voiced_v + voiced_c + unvoiced_c, num_type

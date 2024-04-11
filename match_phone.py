@@ -2,13 +2,14 @@ import argparse
 import torch 
 import glob
 import json
+import pickle
 import numpy as np 
 from tqdm import tqdm
 from melhubert.model import MelHuBERTModel, MelHuBERTConfig 
 from data import DataProcessor
 from tools import get_monophone_end, get_monophone_mid, get_monophone_start
 
-def main(model_pth, mfa_json, save_pth, fp, mean_std_pth, data_pth, phone_type, extra_class):
+def main(model_pth, mfa_json, save_pth, fp, mean_std_pth, data_pth, phone_type, extra_class, merge):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     # Load upstream model 
     all_states = torch.load(model_pth, map_location="cpu")
@@ -16,11 +17,8 @@ def main(model_pth, mfa_json, save_pth, fp, mean_std_pth, data_pth, phone_type, 
         upstream_config = all_states["Upstream_Config"]["melhubert"]
     else:
         upstream_config = all_states["Upstream_Config"]["hubert"]
-    print(upstream_config)
-    D = upstream_config['encoder_ffn_embed_dim']
-    tau = round(D*0.01)
-    upstream_config = MelHuBERTConfig(upstream_config)
-    upstream_model = MelHuBERTModel(upstream_config).to(device)
+    config = MelHuBERTConfig(upstream_config)
+    upstream_model = MelHuBERTModel(config).to(device)
     state_dict = all_states["model"]
     upstream_model.load_state_dict(state_dict)
     upstream_model.eval() 
@@ -33,23 +31,36 @@ def main(model_pth, mfa_json, save_pth, fp, mean_std_pth, data_pth, phone_type, 
         mfa = json.load(fp)
     print(f"Load MFA result from {len(mfa)} utterances")
 
+    NLAYER = upstream_config['encoder_layers']
+    D = upstream_config['encoder_ffn_embed_dim']
+    D = D if type(D) == list else [D for i in range(NLAYER)]
+    N_phone = 41 if merge else 70
+
+    N_list = {
+        'phone-type': N_phone,
+        'gender': N_phone*2,
+        'duration': N_phone*3,
+        'pitch': N_phone*3
+    }
+    N = N_list[extra_class]
+
     if extra_class == 'phone-type':
-        record = [torch.zeros((70, D)) for i in range(12)] 
-        record_n = [[0 for i in range(70)] for i in range(12)]
+        record = [torch.zeros((N, D[i])) for i in range(12)] 
+        record_n = [[0 for i in range(N)] for i in range(12)]
     elif extra_class == 'gender':
-        record = [torch.zeros((70*2, D)) for i in range(12)] 
-        record_n = [[0 for i in range(70*2)] for i in range(12)]
-        with open('./info/libri-test-spk-gender.json', 'r') as fp:
+        record = [torch.zeros((N, D[i])) for i in range(12)] 
+        record_n = [[0 for i in range(N*2)] for i in range(12)]
+        with open('./info/libri-dev-spk-gender.json', 'r') as fp:
             gender_dict = json.load(fp)
     elif extra_class == 'duration':
-        record = [torch.zeros((70*3, D)) for i in range(12)] 
-        record_n = [[0 for i in range(70*3)] for i in range(12)]
-        with open('./info/phone-duration.json', 'r') as fp:
+        record = [torch.zeros((N, D[i])) for i in range(12)] 
+        record_n = [[0 for i in range(N*3)] for i in range(12)]
+        with open('./info/phone-duration-dev-clean.json', 'r') as fp:
             duration_dict = json.load(fp)
     elif extra_class == 'pitch':
-        record = [torch.zeros((70*3, D)) for i in range(12)] 
-        record_n = [[0 for i in range(70*3)] for i in range(12)]
-        with open('./info/pitch-discrete.json', 'r') as fp:
+        record = [torch.zeros((N, D[i])) for i in range(12)] 
+        record_n = [[0 for i in range(N*3)] for i in range(12)]
+        with open('./info/pitch-discrete-dev-clean.json', 'r') as fp:
             pitch_dict = json.load(fp)
 
     for pth in tqdm(wav_pths): 
@@ -84,8 +95,10 @@ def main(model_pth, mfa_json, save_pth, fp, mean_std_pth, data_pth, phone_type, 
 
         for layer_idx, (fc1, fc2) in enumerate(fc_results):
             check_keys = fc1.squeeze(1)[check_idx,:]
+            tau = round(D[layer_idx]*0.01)
             for k in range(len(check_idx)):
                 keys = check_keys[k] # D 
+                assert D[layer_idx] == len(keys)
                 p = check_phone[k] 
                 _, topk_indices = torch.topk(keys, tau)
                 topk_indices = topk_indices.cpu()
@@ -93,38 +106,29 @@ def main(model_pth, mfa_json, save_pth, fp, mean_std_pth, data_pth, phone_type, 
                     record[layer_idx][p, topk_indices] += 1 
                     record_n[layer_idx][p] += 1 
                 elif extra_class == 'gender':
-                    record[layer_idx][g*70+p, topk_indices] += 1 
-                    record_n[layer_idx][g*70+p] += 1 
+                    record[layer_idx][g*N_phone+p, topk_indices] += 1 
+                    record_n[layer_idx][g*N_phone+p] += 1 
                 elif extra_class == 'duration':
                     d = dur[k]
                     if d == -1:
                         continue 
-                    record[layer_idx][d*70+p, topk_indices] += 1 
-                    record_n[layer_idx][d*70+p] += 1 
+                    record[layer_idx][d*N_phone+p, topk_indices] += 1 
+                    record_n[layer_idx][d*N_phone+p] += 1 
                 elif extra_class == 'pitch':
                     pc = check_pitch[k]
                     if pc == -1:
                         continue
-                    record[layer_idx][pc*70+p, topk_indices] += 1 
-                    record_n[layer_idx][pc*70+p] += 1 
+                    record[layer_idx][pc*N_phone+p, topk_indices] += 1 
+                    record_n[layer_idx][pc*N_phone+p] += 1 
 
-    if extra_class == 'phone-type':
-        N = 70
-    elif extra_class == 'gender':
-        N = 70*2
-    elif extra_class == 'duration':
-        N = 70*3
-    elif extra_class == 'pitch':
-        N = 70*3
-        
     for idx in range(12):
         for pidx in range(N):
             if record_n[idx][pidx] != 0:
                 record[idx][pidx,:] /= record_n[idx][pidx]
-    
-    result = torch.stack(record)
-    result = np.array(result)
-    np.save(save_pth, result)
+        record[idx] = np.array(record[idx])
+
+    with open(save_pth, 'wb') as fp:
+        pickle.dump(record, fp)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -136,5 +140,6 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--data-pth', help='Dataset directory')
     parser.add_argument('-t', '--phone-type', help='Phone type', choices=['end-phone', 'mid-phone', 'start-phone'])
     parser.add_argument('-c', '--extra-class', choices=['phone-type', 'gender', 'pitch', 'duration'])
+    parser.add_argument('--merge', action='store_true')
     args = parser.parse_args()
     main(**vars(args))

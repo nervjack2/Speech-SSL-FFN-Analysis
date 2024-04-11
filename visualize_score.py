@@ -1,37 +1,40 @@
 import argparse
 import json
 import os
+import pickle
 import numpy as np 
 import matplotlib.pyplot as plt
 from tools import sort_by_same_phone, sort_voiced_unvoiced, get_DBI, get_silhouette_score, find_ps_keys
 from sklearn.manifold import MDS
 
-def draw_score_layer_compare(npy_dir, save_pth, phone_idx, split_idx):
+def draw_score_layer_compare(pkl_dir, save_pth, phone_idx, split_idx):
     properties = ['phone-type', 'gender', 'pitch', 'duration']
     n_cluster = [3, 2, 3, 3]
     n_phone_group = [1, 2, 3, 3]
     results = {}
     for p_idx, p in enumerate(properties):
-        npy_pth = os.path.join(npy_dir, p+'.npy')
-        data = np.load(npy_pth)
-        n_layer, _, D = data.shape
-        random_baseline = round(D*0.01)/D
+        pkl_pth = os.path.join(pkl_dir, p+'.pkl')
+        with open(pkl_pth, 'rb') as fp:
+            data = pickle.load(fp)
+        n_layer = len(data)
         score_layer = []
         for idx in range(n_layer):
+            NPHONE = data[idx].shape[0]//n_phone_group[p_idx]
             v_datas = []
             for i in range(n_phone_group[p_idx]):
-                sample_idx = [70*i+x for x in phone_idx]
-                v_datas.append(data[idx,sample_idx,:])
+                sample_idx = [NPHONE*i+x for x in phone_idx]
+                v_datas.append(data[idx][sample_idx,:])
             v_data = np.stack(v_datas, axis=0)
-            v_data = v_data.reshape(-1, v_data.shape[-1]) 
-            n_type, n_dim = v_data.shape
+            v_data = v_data.reshape(-1, v_data.shape[-1])
+            n_type, D = v_data.shape
+            random_baseline = round(D*0.01)/D
             # See how many phones have matching probability over random_baseline
             num_dim = [0 for i in range(n_type)]
             for i in range(n_type):
                 num_dim_meaningful = np.sum(v_data[i] > random_baseline)
                 num_dim[i] = num_dim_meaningful
 
-            indices = [[i for i in range(n_dim)] for i in range(n_type)]
+            indices = [[i for i in range(D)] for i in range(n_type)]
             for i in range(n_type):
                 indices[i] = sorted(indices[i], key=lambda x: v_data[i][x], reverse=True)[:num_dim[i]]
             keys = {}
@@ -78,16 +81,16 @@ def draw_score_layer_compare(npy_dir, save_pth, phone_idx, split_idx):
     plt.legend()
     plt.savefig(save_pth, bbox_inches='tight', dpi=200)
 
-def draw_row_pruning_score(npy_dir, save_pth, phone_idx, split_idx, layer_idx):
+def draw_row_pruning_score(pkl_dir, save_pth, phone_idx, split_idx, layer_idx):
     properties = ['phone-type', 'gender', 'pitch', 'duration']
     row = [512, 1024, 1536, 2048, 2560, 2688, 2816, 2944, 3072]
     ticks = []
-    npy_dir_list = []
+    pkl_dir_list = []
     for r in row:
-        npy_dir_list.append(os.path.join(npy_dir, f'phone-uniform-{r}'))
+        pkl_dir_list.append(os.path.join(pkl_dir, f'phone-uniform-{r}'))
         ticks.append(f't{r}')
         if r != 3072:
-            npy_dir_list.append(os.path.join(npy_dir, f'phone-uniform-pruned-{r}'))
+            pkl_dir_list.append(os.path.join(pkl_dir, f'phone-uniform-pruned-{r}'))
             ticks.append(f'p{r}')
 
     n_cluster = [3, 2, 3, 3]
@@ -97,27 +100,28 @@ def draw_row_pruning_score(npy_dir, save_pth, phone_idx, split_idx, layer_idx):
     for p_idx, p in enumerate(properties):
         score_property = []
         N_property = []
-        for r_idx, npy_dir in enumerate(npy_dir_list):
+        for r_idx, pkl_dir in enumerate(pkl_dir_list):
             # Load selected .npy file path
-            npy_pth = os.path.join(npy_dir, p+'.npy')
-            data = np.load(npy_pth)
-            _, _, D = data.shape
-            random_baseline = round(D*0.01)/D
+            pkl_pth = os.path.join(pkl_dir, p+'.pkl')
+            with open(pkl_pth, 'rb') as fp:
+                data = pickle.load(fp)
             # Split selected data 
+            NPHONE = data[layer_idx-1].shape[0]//n_phone_group[p_idx]
             v_datas = []
             for i in range(n_phone_group[p_idx]):
-                sample_idx = [70*i+x for x in phone_idx]
-                v_datas.append(data[layer_idx-1,sample_idx,:])
+                sample_idx = [NPHONE*i+x for x in phone_idx]
+                v_datas.append(data[layer_idx-1][sample_idx,:])
             v_data = np.stack(v_datas, axis=0)
             v_data = v_data.reshape(-1, v_data.shape[-1]) 
-            n_type, n_dim = v_data.shape
+            n_type, D = v_data.shape
+            random_baseline = round(D*0.01)/D
             # See how many phones have matching probability over random_baseline
             num_dim = [0 for i in range(n_type)]
             for i in range(n_type):
                 num_dim_meaningful = np.sum(v_data[i] > random_baseline)
                 num_dim[i] = num_dim_meaningful
             # Sort index by its matching probability
-            indices = [[i for i in range(n_dim)] for i in range(n_type)]
+            indices = [[i for i in range(D)] for i in range(n_type)]
             for i in range(n_type):
                 indices[i] = sorted(indices[i], key=lambda x: v_data[i][x], reverse=True)[:num_dim[i]]
             keys = {}
@@ -167,7 +171,7 @@ def draw_row_pruning_score(npy_dir, save_pth, phone_idx, split_idx, layer_idx):
     plt.savefig(save_pth, bbox_inches='tight', dpi=200)
 
 
-def main(npy_dir, save_pth, mode, phone_label_pth):
+def main(pkl_dir, save_pth, mode, phone_label_pth):
     with open(phone_label_pth, 'r') as fp:
         phone_label = json.load(fp)
     sort_phone = sorted(phone_label, key=lambda x: phone_label[x][1], reverse=True)
@@ -181,7 +185,7 @@ def main(npy_dir, save_pth, mode, phone_label_pth):
         phone_name = sort_phone_unvoiced
         phone_idx = [phone_label[x][0] for x in phone_name]
         ## ===============
-        draw_score_layer_compare(npy_dir, save_pth, phone_idx, split_idx)
+        draw_score_layer_compare(pkl_dir, save_pth, phone_idx, split_idx)
 
     elif mode == 'row-pruning-score':
         ## Hyperparameters 
@@ -190,12 +194,12 @@ def main(npy_dir, save_pth, mode, phone_label_pth):
         phone_name = sort_phone_unvoiced
         phone_idx = [phone_label[x][0] for x in phone_name]
         ## ===============
-        draw_row_pruning_score(npy_dir, save_pth, phone_idx, split_idx, layer_idx)
+        draw_row_pruning_score(pkl_dir, save_pth, phone_idx, split_idx, layer_idx)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--npy-dir', 
-        help='Data .npy dir. Should contain four .npy file, including phone type, gender, pitch, and duration.')
+    parser.add_argument('-d', '--pkl-dir', 
+        help='Data .pkl dir. Should contain four .pkl file, including phone type, gender, pitch, and duration.')
     parser.add_argument('-s', '--save-pth', help='Save path')
     parser.add_argument('-m', '--mode', help='Drawing figure mode', 
                     choices=['layer-compare', 'row-pruning-score'])

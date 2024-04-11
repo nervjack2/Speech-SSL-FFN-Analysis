@@ -2,6 +2,7 @@ import argparse
 import json 
 import numpy as np 
 import os
+import pickle
 import matplotlib.pyplot as plt
 from tools import sort_by_same_phone, sort_voiced_unvoiced, find_ps_keys
 
@@ -13,21 +14,22 @@ group_name = {
     'duration': ['<60ms', '60-100ms', '>100ms']
 }
 
-def find_keys(npy_dir, save_pth, phone_label_pth, mode, sigma, phone_idx, s_idx):
+def find_keys(pkl_dir, save_pth, phone_label_pth, mode, sigma, phone_idx, s_idx):
     properties = ['phone-type', 'gender', 'pitch', 'duration']
     n_phone_group = [1, 2, 3, 3]
     results = {}
     for p_idx, p in enumerate(properties):
-        npy_pth = os.path.join(npy_dir, p+'.npy')
-        data = np.load(npy_pth)
-        n_layer, _, D = data.shape
-        random_baseline = round(D*0.01)/D
+        pkl_pth = os.path.join(pkl_dir, p+'.pkl')
+        with open(pkl_pth, 'rb') as fp:
+            data = pickle.load(fp)
+        n_layer = len(data)
         keys_layer = {}
         for idx in range(n_layer):
             v_datas = []
+            NPHONE = data[idx].shape[0] // n_phone_group[p_idx]
             for i in range(n_phone_group[p_idx]):
-                sample_idx = [70*i+x for x in phone_idx]
-                v_datas.append(data[idx,sample_idx,:]) 
+                sample_idx = [NPHONE*i+x for x in phone_idx]
+                v_datas.append(data[idx][sample_idx,:]) 
 
             if p == 'phone-type':
                 new_v_datas = []
@@ -39,12 +41,13 @@ def find_keys(npy_dir, save_pth, phone_label_pth, mode, sigma, phone_idx, s_idx)
             # See the common activated keys for a specfic group (etc. Male, Female)
             keys_group = {}
             for g_idx in range(n_group):
-                n_phone, n_dim = v_datas[g_idx].shape
+                n_phone, D = v_datas[g_idx].shape
+                random_baseline = round(D*0.01)/D
                 num_dim = [0 for i in range(n_phone)]
                 for i in range(n_phone):
                     num_dim_meaningful = np.sum(v_datas[g_idx][i] > random_baseline)
                     num_dim[i] = num_dim_meaningful
-                indices = [[i for i in range(n_dim)] for i in range(n_phone)]
+                indices = [[i for i in range(D)] for i in range(n_phone)]
                 for i in range(n_phone):
                     indices[i] = sorted(indices[i], key=lambda x: v_datas[g_idx][i][x], reverse=True)[:num_dim[i]]
                 keys = {}
@@ -153,7 +156,7 @@ def draw_row_pruning_n_ps_keys(rows_keys, save_pth, layer_idx, row):
     plt.legend()
     plt.savefig(save_pth, bbox_inches='tight', dpi=200)
 
-def main(npy_dir, save_pth, phone_label_pth, mode):
+def main(pkl_dir, save_pth, phone_label_pth, mode, sigma):
     with open(phone_label_pth, 'r') as fp:
         phone_label = json.load(fp)
     sort_phone = sorted(phone_label, key=lambda x: phone_label[x][1], reverse=True)
@@ -165,47 +168,45 @@ def main(npy_dir, save_pth, phone_label_pth, mode):
     if mode == 'layer-n-compare':
         # Hyperparameters
         # =================
-        sigma = 0.8
         # =================
         phone_name = sort_phone_unvoiced
         phone_idx = [phone_label[x][0] for x in phone_name]
-        keys = find_keys(npy_dir, save_pth, phone_label_pth, mode, sigma, phone_idx, split_idx)
+        keys = find_keys(pkl_dir, save_pth, phone_label_pth, mode, sigma, phone_idx, split_idx)
         draw_layer_n(keys, save_pth)
     elif mode == 'venn-ps-keys':
         # Hyperparameters
         # ================
         layer_idx = 1
-        sigma = 0.8
         # ================
         phone_name = sort_phone_unvoiced
         phone_idx = [phone_label[x][0] for x in phone_name]
-        keys = find_keys(npy_dir, save_pth, phone_label_pth, mode, sigma, phone_idx, split_idx)
+        keys = find_keys(pkl_dir, save_pth, phone_label_pth, mode, sigma, phone_idx, split_idx)
         draw_venn_ps_keys(keys, save_pth, layer_idx)
     elif mode == 'row-pruning-n-ps-keys':
         # Hyperparameters
         # ================
         layer_idx = 12
-        sigma = 0.8
         # ================
         phone_name = sort_phone_unvoiced
         phone_idx = [phone_label[x][0] for x in phone_name]
-        npy_dir_paths = []
+        pkl_dir_paths = []
         row = [512, 1024, 1536, 2048, 2560, 2688, 2816, 2944, 3072]
         for r in row:
-            npy_dir_paths.append(os.path.join(npy_dir, f"phone-uniform-{r}"))
+            pkl_dir_paths.append(os.path.join(pkl_dir, f"phone-uniform-{r}"))
             if r != 3072:
-                npy_dir_paths.append(os.path.join(npy_dir, f"phone-uniform-pruned-{r}"))
+                pkl_dir_paths.append(os.path.join(pkl_dir, f"phone-uniform-pruned-{r}"))
         rows_keys = []
-        for idx, npy_dir in enumerate(npy_dir_paths):
-            keys = find_keys(npy_dir, save_pth, phone_label_pth, mode, sigma, phone_idx, split_idx)
+        for idx, pkl_dir in enumerate(pkl_dir_paths):
+            keys = find_keys(pkl_dir, save_pth, phone_label_pth, mode, sigma, phone_idx, split_idx)
             rows_keys.append(keys)
         draw_row_pruning_n_ps_keys(rows_keys, save_pth, layer_idx, row)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--npy-dir', help='Data .npy directory')
+    parser.add_argument('-d', '--pkl-dir', help='Data .pkl directory')
     parser.add_argument('-s', '--save-pth', help='Save path')
     parser.add_argument('-p', '--phone-label-pth', help='Phoneme lable path')
     parser.add_argument('-m', '--mode', help='Drawing figure mode', choices=['layer-n-compare', 'venn-ps-keys', 'row-pruning-n-ps-keys'])
+    parser.add_argument('--sigma', default=0.8, type=int)
     args = parser.parse_args()
     main(**vars(args))

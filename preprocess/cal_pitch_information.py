@@ -29,7 +29,7 @@ def discretize(data_pth, save_pth, mode):
         for v in value:
             if v != 0:
                 values.append(v)
-    print(values)
+                
     if 'extreme' not in mode:
         percent = [33,66]
         t = [np.percentile(values, percent[i]) for i in range(2)] 
