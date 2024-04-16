@@ -208,7 +208,6 @@ def draw_models_comapre(pkl_dir, save_pth, phone_idx, split_idx):
     ax.set_ylabel('Silhouette score')
     ax.set_xticks(x*0.5 + width*1.5, properties)
     ax.legend(loc='upper left', fontsize=)
-
     plt.savefig(save_pth, dpi=200, bbox_inches='tight')
 
 
