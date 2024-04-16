@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from tools import sort_by_same_phone, sort_voiced_unvoiced, get_DBI, get_silhouette_score, find_ps_keys
 from sklearn.manifold import MDS
 
-def draw_score_layer_compare(pkl_dir, save_pth, phone_idx, split_idx):
+def get_layer_score(pkl_dir, phone_idx, split_idx):
     properties = ['phone-type', 'gender', 'pitch', 'duration']
     n_cluster = [3, 2, 3, 3]
     n_phone_group = [1, 2, 3, 3]
@@ -67,6 +67,10 @@ def draw_score_layer_compare(pkl_dir, save_pth, phone_idx, split_idx):
 
         results[p] = score_layer
 
+    return results
+
+def draw_score_layer_compare(pkl_dir, save_pth, phone_idx, split_idx):
+    results = get_layer_score(pkl_dir, phone_idx, split_idx)
     color = {
         'phone-type': 'red',
         'gender': 'blue',
@@ -84,6 +88,7 @@ def draw_score_layer_compare(pkl_dir, save_pth, phone_idx, split_idx):
 def draw_row_pruning_score(pkl_dir, save_pth, phone_idx, split_idx, layer_idx):
     properties = ['phone-type', 'gender', 'pitch', 'duration']
     row = [512, 1024, 1536, 2048, 2560, 2688, 2816, 2944, 3072]
+    # row = [2944, 3072]
     ticks = []
     pkl_dir_list = []
     for r in row:
@@ -170,6 +175,42 @@ def draw_row_pruning_score(pkl_dir, save_pth, phone_idx, split_idx, layer_idx):
     plt.legend()
     plt.savefig(save_pth, bbox_inches='tight', dpi=200)
 
+def draw_models_comapre(pkl_dir, save_pth, phone_idx, split_idx):
+    models_list = ['melhubert_base', 'hubert_base', 'wav2vec2_base', 'wavlm_base']
+    properties = ['phone-type', 'gender', 'pitch']
+    model_score = {x: [] for x in models_list}
+    
+    for model in models_list:
+        pkl_model_dir = os.path.join(pkl_dir, f"pkl_{model}_dev_clean_merge")
+        results = get_layer_score(pkl_model_dir, phone_idx, split_idx)
+        for p in properties:
+            max_score = max(results[p])
+            model_score[model].append(max_score)
+
+    color = {
+        'melhubert_base': 'red',
+        'hubert_base': 'blue',
+        'wav2vec2_base': 'green',
+        'wavlm_base': 'black'
+    }
+
+    x = np.arange(3)  # the label locations
+    width = 0.08  # the width of the bars
+    multiplier = 0
+
+    fig, ax = plt.subplots(layout='constrained', figsize=(5,4))
+
+    for m in models_list:
+        offset = width * multiplier
+        ax.bar(x*0.5 + offset, model_score[m], width, label=m, color=color[m])
+        multiplier += 1
+
+    ax.set_ylabel('Silhouette score')
+    ax.set_xticks(x*0.5 + width*1.5, properties)
+    ax.legend(loc='upper left', fontsize=)
+
+    plt.savefig(save_pth, dpi=200, bbox_inches='tight')
+
 
 def main(pkl_dir, save_pth, mode, phone_label_pth):
     with open(phone_label_pth, 'r') as fp:
@@ -195,6 +236,14 @@ def main(pkl_dir, save_pth, mode, phone_label_pth):
         phone_idx = [phone_label[x][0] for x in phone_name]
         ## ===============
         draw_row_pruning_score(pkl_dir, save_pth, phone_idx, split_idx, layer_idx)
+    
+    elif mode == 'models-compare':
+        ## Hyperparameters 
+        ## ===============
+        phone_name = sort_phone_unvoiced
+        phone_idx = [phone_label[x][0] for x in phone_name]
+        ## ===============
+        draw_models_comapre(pkl_dir, save_pth, phone_idx, split_idx)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -202,7 +251,7 @@ if __name__ == '__main__':
         help='Data .pkl dir. Should contain four .pkl file, including phone type, gender, pitch, and duration.')
     parser.add_argument('-s', '--save-pth', help='Save path')
     parser.add_argument('-m', '--mode', help='Drawing figure mode', 
-                    choices=['layer-compare', 'row-pruning-score'])
+                    choices=['layer-compare', 'row-pruning-score', 'models-compare'])
 
     parser.add_argument('-p', '--phone-label-pth', help='Phoneme lable path')
     args = parser.parse_args()
