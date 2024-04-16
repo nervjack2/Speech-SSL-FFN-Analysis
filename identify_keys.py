@@ -5,7 +5,7 @@ import os
 import pickle
 import matplotlib.pyplot as plt
 from tools import sort_by_same_phone, sort_voiced_unvoiced, find_ps_keys
-
+from matplotlib_venn import venn2, venn3
 
 group_name = {
     'phone-type': ['vowels', 'voiced-consonants', 'unvoiced-consonants'],
@@ -14,7 +14,7 @@ group_name = {
     'duration': ['<60ms', '60-100ms', '>100ms']
 }
 
-def find_keys(pkl_dir, save_pth, phone_label_pth, mode, sigma, phone_idx, s_idx):
+def find_keys(pkl_dir, mode, sigma, phone_idx, s_idx):
     properties = ['phone-type', 'gender', 'pitch', 'duration']
     n_phone_group = [1, 2, 3, 3]
     results = {}
@@ -84,14 +84,13 @@ def draw_layer_n(x, save_pth):
         plt.plot(range(1, 12+1), v, label=k, color=color[k], marker='o')
     plt.legend()
     plt.xlabel('Layer')
-    plt.ylabel('Num. property-activated keys')
+    plt.ylabel('Num. property-specific keys')
     plt.savefig(save_pth, bbox_inches='tight', dpi=200)
 
 def draw_venn_ps_keys(x, save_pth, layer_idx):
     # ====================
     # Note: We do not visualize the result of duration, since FFD does not show good capability to caputre duration information.
     # ====================
-    from matplotlib_venn import venn3
     data = find_ps_keys(x)
     p_name = ['phone-type', 'gender', 'pitch']
     l_data = [data[p][layer_idx] for p in p_name]
@@ -120,10 +119,11 @@ def draw_venn_ps_keys(x, save_pth, layer_idx):
                 set_sizes[k] = len(n) 
     # Four set 
     k = '111'
-    x = set([])
+    x = set(l_data[0])
     for i in range(n_p):
         x &= set(l_data[i])
     set_sizes[k] = len(x)    
+   
     venn = venn3(subsets=set_sizes, set_labels=p_name)
     plt.savefig(save_pth, bbox_inches='tight', dpi=200)
 
@@ -171,16 +171,16 @@ def main(pkl_dir, save_pth, phone_label_pth, mode, sigma):
         # =================
         phone_name = sort_phone_unvoiced
         phone_idx = [phone_label[x][0] for x in phone_name]
-        keys = find_keys(pkl_dir, save_pth, phone_label_pth, mode, sigma, phone_idx, split_idx)
+        keys = find_keys(pkl_dir, mode, sigma, phone_idx, split_idx)
         draw_layer_n(keys, save_pth)
     elif mode == 'venn-ps-keys':
         # Hyperparameters
         # ================
-        layer_idx = 1
+        layer_idx = 12
         # ================
         phone_name = sort_phone_unvoiced
         phone_idx = [phone_label[x][0] for x in phone_name]
-        keys = find_keys(pkl_dir, save_pth, phone_label_pth, mode, sigma, phone_idx, split_idx)
+        keys = find_keys(pkl_dir, mode, sigma, phone_idx, split_idx)
         draw_venn_ps_keys(keys, save_pth, layer_idx)
     elif mode == 'row-pruning-n-ps-keys':
         # Hyperparameters
@@ -191,13 +191,14 @@ def main(pkl_dir, save_pth, phone_label_pth, mode, sigma):
         phone_idx = [phone_label[x][0] for x in phone_name]
         pkl_dir_paths = []
         row = [512, 1024, 1536, 2048, 2560, 2688, 2816, 2944, 3072]
+        # row = [2944, 3072]
         for r in row:
             pkl_dir_paths.append(os.path.join(pkl_dir, f"phone-uniform-{r}"))
             if r != 3072:
                 pkl_dir_paths.append(os.path.join(pkl_dir, f"phone-uniform-pruned-{r}"))
         rows_keys = []
         for idx, pkl_dir in enumerate(pkl_dir_paths):
-            keys = find_keys(pkl_dir, save_pth, phone_label_pth, mode, sigma, phone_idx, split_idx)
+            keys = find_keys(pkl_dir, mode, sigma, phone_idx, split_idx)
             rows_keys.append(keys)
         draw_row_pruning_n_ps_keys(rows_keys, save_pth, layer_idx, row)
 
@@ -206,7 +207,8 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--pkl-dir', help='Data .pkl directory')
     parser.add_argument('-s', '--save-pth', help='Save path')
     parser.add_argument('-p', '--phone-label-pth', help='Phoneme lable path')
-    parser.add_argument('-m', '--mode', help='Drawing figure mode', choices=['layer-n-compare', 'venn-ps-keys', 'row-pruning-n-ps-keys'])
-    parser.add_argument('--sigma', default=0.8, type=int)
+    parser.add_argument('-m', '--mode', help='Drawing figure mode', 
+            choices=['layer-n-compare', 'venn-ps-keys', 'row-pruning-n-ps-keys'])
+    parser.add_argument('--sigma', default=0.8, type=float)
     args = parser.parse_args()
     main(**vars(args))

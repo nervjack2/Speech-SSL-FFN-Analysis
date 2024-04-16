@@ -4,37 +4,28 @@ import glob
 import json
 import pickle
 import numpy as np 
+import torchaudio
 from tqdm import tqdm
-from melhubert.model import MelHuBERTModel, MelHuBERTConfig 
 from data import DataProcessor
 from tools import get_monophone_end, get_monophone_mid, get_monophone_start
+from s3prl.hub import *
 
-def main(model_pth, mfa_json, save_pth, fp, mean_std_pth, data_pth, phone_type, extra_class, merge):
+def main(model_name, mfa_json, save_pth, data_pth, phone_type, extra_class, merge):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     # Load upstream model 
-    all_states = torch.load(model_pth, map_location="cpu")
-    if "melhubert" in all_states["Upstream_Config"]:
-        upstream_config = all_states["Upstream_Config"]["melhubert"]
-    else:
-        upstream_config = all_states["Upstream_Config"]["hubert"]
-    config = MelHuBERTConfig(upstream_config)
-    upstream_model = MelHuBERTModel(config).to(device)
-    state_dict = all_states["model"]
-    upstream_model.load_state_dict(state_dict)
-    upstream_model.eval() 
+    upstream_model = eval(model_name)().to(device)
+    upstream_model.eval()
     
-    # Load mean std 
-    dp = DataProcessor(mean_std_pth, device, fp)
     # Wav paths 
     wav_pths = list(glob.glob(data_pth+"**/*.flac", recursive=True))
+
     # Load phoneme force align result 
     with open(mfa_json, 'r') as fp:
         mfa = json.load(fp)
     print(f"Load MFA result from {len(mfa)} utterances")
 
-    NLAYER = upstream_config['encoder_layers']
-    D = upstream_config['encoder_ffn_embed_dim']
-    D = D if type(D) == list else [D for i in range(NLAYER)]
+    NLAYER = 12
+    D = 3072
     N_phone = 41 if merge else 70
 
     N_list = {
@@ -46,20 +37,20 @@ def main(model_pth, mfa_json, save_pth, fp, mean_std_pth, data_pth, phone_type, 
     N = N_list[extra_class]
 
     if extra_class == 'phone-type':
-        record = [torch.zeros((N, D[i])) for i in range(12)] 
+        record = [torch.zeros((N, D)) for i in range(12)] 
         record_n = [[0 for i in range(N)] for i in range(12)]
     elif extra_class == 'gender':
-        record = [torch.zeros((N, D[i])) for i in range(12)] 
+        record = [torch.zeros((N, D)) for i in range(12)] 
         record_n = [[0 for i in range(N*2)] for i in range(12)]
         with open('./info/libri-dev-spk-gender.json', 'r') as fp:
             gender_dict = json.load(fp)
     elif extra_class == 'duration':
-        record = [torch.zeros((N, D[i])) for i in range(12)] 
+        record = [torch.zeros((N, D)) for i in range(12)] 
         record_n = [[0 for i in range(N*3)] for i in range(12)]
         with open('./info/phone-duration-dev-clean.json', 'r') as fp:
             duration_dict = json.load(fp)
     elif extra_class == 'pitch':
-        record = [torch.zeros((N, D[i])) for i in range(12)] 
+        record = [torch.zeros((N, D)) for i in range(12)] 
         record_n = [[0 for i in range(N*3)] for i in range(12)]
         with open('./info/pitch-discrete-dev-clean.json', 'r') as fp:
             pitch_dict = json.load(fp)
@@ -89,17 +80,19 @@ def main(model_pth, mfa_json, save_pth, fp, mean_std_pth, data_pth, phone_type, 
         if extra_class == 'pitch':
             check_pitch = [pitch[idx] for idx in check_idx]
         # Forward models to get FFC layer results 
-        mel_input, pad_mask = dp.prepare_data(pth)
+        wav, sr = torchaudio.load(pth)
+        input_wavs = [wav.view(-1).to(device)]
     
         with torch.no_grad():
-            out = upstream_model(mel_input, pad_mask, get_hidden=True, no_pred=True)
-        fc_results = out[7]
+            out = upstream_model(input_wavs)
+            fc_results = out["fc_results"]
+
         for layer_idx, (fc1, fc2) in enumerate(fc_results):
             check_keys = fc1.squeeze(1)[check_idx,:]
-            tau = round(D[layer_idx]*0.01)
+            tau = round(D*0.01)
             for k in range(len(check_idx)):
                 keys = torch.abs(check_keys[k]) # D 
-                assert D[layer_idx] == len(keys)
+                assert D == len(keys)
                 p = check_phone[k] 
                 _, topk_indices = torch.topk(keys, tau)
                 topk_indices = topk_indices.cpu()
@@ -133,11 +126,9 @@ def main(model_pth, mfa_json, save_pth, fp, mean_std_pth, data_pth, phone_type, 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-m', '--model-pth', help='Model path')
+    parser.add_argument('-m', '--model-name', help='Model name')
     parser.add_argument('-f', '--mfa-json', help='Force aligning result')  
     parser.add_argument('-s', '--save-pth', help='Result save path')
-    parser.add_argument('-p', '--fp', type=int, help='Frame period', choices=[10, 20])
-    parser.add_argument('-x', '--mean-std-pth', help='Mean std path')
     parser.add_argument('-d', '--data-pth', help='Dataset directory')
     parser.add_argument('-t', '--phone-type', help='Phone type', choices=['end-phone', 'mid-phone', 'start-phone'])
     parser.add_argument('-c', '--extra-class', choices=['phone-type', 'gender', 'pitch', 'duration'])

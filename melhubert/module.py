@@ -146,7 +146,8 @@ class TransformerEncoder(nn.Module):
 
         self.dropout = args.dropout
         self.embedding_dim = args.encoder_embed_dim
-        self.ffn_embedding_dim = args.encoder_ffn_embed_dim
+        NLAYER = args.encoder_layers
+        self.ffn_embedding_dim = args.encoder_ffn_embed_dim if type(args.encoder_ffn_embed_dim) == list else [args.encoder_ffn_embed_dim for i in range(NLAYER)]
 
         self.pos_emb_type = args.pos_emb_type
     
@@ -202,7 +203,7 @@ class TransformerEncoder(nn.Module):
             [
                 TransformerSentenceEncoderLayer(
                     embedding_dim=self.embedding_dim,
-                    ffn_embedding_dim=args.encoder_ffn_embed_dim,
+                    ffn_embedding_dim=self.ffn_embedding_dim[idx],
                     num_attention_heads=args.encoder_attention_heads,
                     dropout=self.dropout,
                     attention_dropout=args.attention_dropout,
@@ -211,7 +212,7 @@ class TransformerEncoder(nn.Module):
                     layer_norm_first=args.layer_norm_first,
                     attention_type=args.attention_type,
                 )
-                for _ in range(args.encoder_layers)
+                for idx in range(args.encoder_layers)
             ]
         )
 
