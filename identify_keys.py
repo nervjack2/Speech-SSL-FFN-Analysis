@@ -80,8 +80,14 @@ def draw_layer_n(x, save_pth):
         'pitch': 'green',
         'duration': 'black'
     }
+    label = {
+        'phone-type': 'phoneme',
+        'gender': 'gender',
+        'pitch': 'pitch',
+        'duration': 'duration'
+    }
     for k, v in layer_n_ps_keys.items():
-        plt.plot(range(1, 12+1), v, label=k, color=color[k], marker='o')
+        plt.plot(range(1, 12+1), v, label=label[k], color=color[k], marker='o')
     plt.legend()
     plt.xlabel('Layer')
     plt.ylabel('Num. property-specific keys')

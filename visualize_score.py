@@ -54,7 +54,7 @@ def get_layer_score(pkl_dir, phone_idx, split_idx):
             for i in range(n_type):
                 v_data[i][key_visualize_idx[i]] = 1 
             # Multiscale scaling
-            mds = MDS(n_components=2, random_state=0, normalized_stress='auto')
+            mds = MDS(n_components=2, random_state=0)
             v_data_2d = mds.fit_transform(v_data) # n_phone x 2 
 
             if p == 'phone-type': 
@@ -77,8 +77,14 @@ def draw_score_layer_compare(pkl_dir, save_pth, phone_idx, split_idx):
         'pitch': 'green',
         'duration': 'black'
     }
+    labels = {
+        'phone-type': 'phoneme',
+        'gender': 'gender',
+        'pitch': 'pitch',
+        'duration': 'duration' 
+    }
     for k, v in results.items():
-        plt.plot(range(1,13), v, label=k, c=color[k], marker='o')
+        plt.plot(range(1,13), v, label=labels[k], c=color[k], marker='o')
     plt.xticks(ticks=range(1,13))
     plt.xlabel('Layer')
     plt.ylabel('Silhouette score')
@@ -147,7 +153,7 @@ def draw_row_pruning_score(pkl_dir, save_pth, phone_idx, split_idx, layer_idx):
             for i in range(n_type):
                 v_data[i][key_visualize_idx[i]] = 1 
             # Multiscale scaling
-            mds = MDS(n_components=2, random_state=0, normalized_stress='auto')
+            mds = MDS(n_components=2, random_state=0)
             v_data_2d = mds.fit_transform(v_data) # n_phone x 2 
 
             if p == 'phone-type': 
@@ -186,12 +192,17 @@ def draw_models_comapre(pkl_dir, save_pth, phone_idx, split_idx):
         for p in properties:
             max_score = max(results[p])
             model_score[model].append(max_score)
-
     color = {
         'melhubert_base': 'red',
         'hubert_base': 'blue',
         'wav2vec2_base': 'green',
         'wavlm_base': 'black'
+    }
+    label = {
+        'melhubert_base': 'MelHuBERT',
+        'hubert_base': 'HuBERT',
+        'wav2vec2_base': 'Wav2vec 2.0',
+        'wavlm_base': 'WavLM'
     }
 
     x = np.arange(3)  # the label locations
@@ -202,12 +213,14 @@ def draw_models_comapre(pkl_dir, save_pth, phone_idx, split_idx):
 
     for m in models_list:
         offset = width * multiplier
-        ax.bar(x*0.5 + offset, model_score[m], width, label=m, color=color[m])
+        ax.bar(x*0.5 + offset, model_score[m], width, label=label[m], color=color[m])
         multiplier += 1
 
+    xticks = ['phoneme', 'gender', 'pitch']
     ax.set_ylabel('Silhouette score')
-    ax.set_xticks(x*0.5 + width*1.5, properties)
-    ax.legend(loc='upper left', fontsize=)
+    ax.set_xticks(x*0.5 + width*1.5, xticks)
+    
+    ax.legend(loc='upper left')
     plt.savefig(save_pth, dpi=200, bbox_inches='tight')
 
 

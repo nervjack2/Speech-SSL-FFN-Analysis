@@ -83,8 +83,11 @@ def main(model_pth, cluster_pth, save_pth, fp, mean_std_pth, data_pth, select):
                     topk_indices = torch.argmax(keys).unsqueeze(0)
                 weights = check_keys[t][topk_indices] # tau
                 values = layers_values[layer_idx][0][topk_indices,:] # tau x H
-                values_bias = layers_values[layer_idx][1]
-                out = F.softmax(torch.matmul(torch.matmul(weights, values)+values_bias, final_proj_w)+final_proj_b, dim=-1) # 512
+                # values_bias = layers_values[layer_idx][1]
+                if select == 'ratio':
+                    out = F.softmax(torch.matmul(torch.matmul(weights, values), final_proj_w)+final_proj_b, dim=-1) # 512
+                elif select == 'top1':
+                    out = F.softmax(torch.matmul(values, final_proj_w)+final_proj_b, dim=-1) # 512
                 predict = torch.argmax(out)
                 if cluster[t] == predict:
                     n_correct[layer_idx] += 1 

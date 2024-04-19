@@ -42,17 +42,17 @@ def main(model_name, mfa_json, save_pth, data_pth, phone_type, extra_class, merg
     elif extra_class == 'gender':
         record = [torch.zeros((N, D)) for i in range(12)] 
         record_n = [[0 for i in range(N*2)] for i in range(12)]
-        with open('./info/libri-dev-spk-gender.json', 'r') as fp:
+        with open('../info/libri-dev-spk-gender.json', 'r') as fp:
             gender_dict = json.load(fp)
     elif extra_class == 'duration':
         record = [torch.zeros((N, D)) for i in range(12)] 
         record_n = [[0 for i in range(N*3)] for i in range(12)]
-        with open('./info/phone-duration-dev-clean.json', 'r') as fp:
+        with open('../info/phone-duration-dev-clean.json', 'r') as fp:
             duration_dict = json.load(fp)
     elif extra_class == 'pitch':
         record = [torch.zeros((N, D)) for i in range(12)] 
         record_n = [[0 for i in range(N*3)] for i in range(12)]
-        with open('./info/pitch-discrete-dev-clean.json', 'r') as fp:
+        with open('../info/pitch-discrete-dev-clean.json', 'r') as fp:
             pitch_dict = json.load(fp)
 
     for pth in tqdm(wav_pths): 
@@ -79,7 +79,7 @@ def main(model_name, mfa_json, save_pth, data_pth, phone_type, extra_class, merg
         check_phone = [phoneme[idx] for idx in check_idx]
         if extra_class == 'pitch':
             check_pitch = [pitch[idx] for idx in check_idx]
-        # Forward models to get FFC layer results 
+        # Forward models to get FFC layer results
         wav, sr = torchaudio.load(pth)
         input_wavs = [wav.view(-1).to(device)]
     

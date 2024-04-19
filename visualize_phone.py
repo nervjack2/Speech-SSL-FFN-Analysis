@@ -85,7 +85,7 @@ def draw_mds_phone_type(data, save_pth, phone_idx, phone_name, layer, num_type):
     for i in range(n_phone):
         v_data[i][key_visualize_idx[i]] = 1 
     # Multiscale scaling
-    mds = MDS(n_components=2, random_state=0, normalized_stress='auto')
+    mds = MDS(n_components=2, random_state=0)
     v_data_2d = mds.fit_transform(v_data)
     color = ['red', 'blue', 'green']
     label = ['vowels', 'voiced-consonants', 'unvoiced-consonants']
@@ -138,7 +138,7 @@ def draw_mds_gender(data, save_pth, phone_name, layer, num_type, phone_idx):
     for i in range(n_data):
         v_data[i][key_visualize_idx[i]] = 1 
     # Multiscale scaling
-    mds = MDS(n_components=2, random_state=0, normalized_stress='auto')
+    mds = MDS(n_components=2, random_state=0)
     v_data_2d = mds.fit_transform(v_data)
     color = ['red', 'blue']
     label = ['male', 'female']
@@ -193,7 +193,7 @@ def draw_mds_duration(data, save_pth, phone_name, layer, num_type, label, phone_
     for i in range(n_data):
         v_data[i][key_visualize_idx[i]] = 1 
     # Multiscale scaling
-    mds = MDS(n_components=2, random_state=0, normalized_stress='auto')
+    mds = MDS(n_components=2, random_state=0)
     v_data_2d = mds.fit_transform(v_data)
     color = ['red', 'blue', 'green']
     for idx in range(3):
@@ -245,7 +245,7 @@ def draw_mds_pitch(data, save_pth, phone_name, layer, num_type, label, phone_idx
     for i in range(n_data):
         v_data[i][key_visualize_idx[i]] = 1 
     # Multiscale scaling
-    mds = MDS(n_components=2, random_state=0, normalized_stress='auto')
+    mds = MDS(n_components=2, random_state=0)
     v_data_2d = mds.fit_transform(v_data)
     color = ['red', 'blue', 'green', 'yellow']
     for idx in range(3):
@@ -304,7 +304,7 @@ def main(pkl_pth, save_pth, phone_label_pth, mode, layer_n):
         # Extreme 40ms 140ms
         # label = ['<40', '40-140', '>140']
         # Normal 60ms 100ms
-        label = ['<60', '60-100', '>100']
+        label = ['<60ms', '60-100ms', '>100ms']
         # =================
         phone_name = sort_phone_unvoiced
         phone_idx = [phone_label[x][0] for x in phone_name]
@@ -316,7 +316,7 @@ def main(pkl_pth, save_pth, phone_label_pth, mode, layer_n):
         # Extreme 95.80838323353294, 222.91946630147046
         # label = ['<95.81', '95.81-222.92', '>222.92']
         # Normal 129.03225806451613, 179.77528089887642
-        label = ['<129.03', '129.03-179.78', '>179.78']
+        label = ['<129.03Hz', '129.03-179.78Hz', '>179.78Hz']
         # =================
         phone_name = sort_phone_unvoiced
         phone_idx = [phone_label[x][0] for x in phone_name]
