@@ -93,8 +93,8 @@ def draw_score_layer_compare(pkl_dir, save_pth, phone_idx, split_idx):
 
 def draw_row_pruning_score(pkl_dir, save_pth, phone_idx, split_idx, layer_idx):
     properties = ['phone-type', 'gender', 'pitch', 'duration']
-    row = [512, 1024, 1536, 2048, 2560, 2688, 2816, 2944, 3072]
-    # row = [2944, 3072]
+    # row = [512, 1024, 1536, 2048, 2560, 2688, 2816, 2944, 3072]
+    row = [2944, 3072]
     ticks = []
     pkl_dir_list = []
     for r in row:
