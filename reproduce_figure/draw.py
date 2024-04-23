@@ -160,89 +160,89 @@ def venn_ps_keys():
     venn = venn3(subsets=set_sizes, set_labels=p_name)
     plt.savefig('fig/venn-ps-keys-layer-1.png', bbox_inches='tight', dpi=200)
 
-def row_pruning_cmp_n_ps_keys():
-    properties = ['phone-type', 'gender']
-    data_type = ['regular', 'all-128', 'all-all']
-    data_pth = [f'data/{x}-row-pruning-n-ps-keys.json' for x in data_type]
-    rows = {
-        'regular': [512, 1024, 1536, 2048, 2560, 2688, 2816, 2944, 3072],
-        'all-128': [512, 1024, 1536, 2048, 2560, 2688, 2816, 2944, 3072],
-        'all-all': [598, 3072]
-    }
-    # Calculate density 
-    D = 3072 
-    density = {}
-    for k, v in rows.items():
-        density[k] = [i/D for i in v]
+# def row_pruning_cmp_n_ps_keys():
+#     properties = ['phone-type', 'gender']
+#     data_type = ['regular', 'all-128', 'all-all']
+#     data_pth = [f'data/{x}-row-pruning-n-ps-keys.json' for x in data_type]
+#     rows = {
+#         'regular': [512, 1024, 1536, 2048, 2560, 2688, 2816, 2944, 3072],
+#         'all-128': [512, 1024, 1536, 2048, 2560, 2688, 2816, 2944, 3072],
+#         'all-all': [598, 3072]
+#     }
+#     # Calculate density 
+#     D = 3072 
+#     density = {}
+#     for k, v in rows.items():
+#         density[k] = [i/D for i in v]
 
-    datas = {}
-    for k, pth in zip(data_type, data_pth):
-        with open(pth, 'r') as fp:
-            d = json.load(fp)
-        datas[k] = d
+#     datas = {}
+#     for k, pth in zip(data_type, data_pth):
+#         with open(pth, 'r') as fp:
+#             d = json.load(fp)
+#         datas[k] = d
 
-    colors = {
-        'regular': 'red', 
-        'all-128': 'blue', 
-        'all-all': 'green'
-    }
-    labels = {
-        'regular': 'regular', 
-        'all-128': 'proposed-128', 
-        'all-all': 'proposed-all'
-    }
+#     colors = {
+#         'regular': 'red', 
+#         'all-128': 'blue', 
+#         'all-all': 'green'
+#     }
+#     labels = {
+#         'regular': 'regular', 
+#         'all-128': 'proposed-128', 
+#         'all-all': 'proposed-all'
+#     }
 
-    for dt in data_type:
-        gender_ps = datas[dt]['gender'][::2]
-        plt.plot(density[dt], gender_ps, color=colors[dt], marker='o', label=labels[dt])
-        # phone_ps = datas[dt]['phone-type'][::2]
-        # plt.plot(density[dt], phone_ps, color=colors[dt], marker='o', alpha=0.2)
-    plt.legend()
-    plt.xlabel('Density')
-    plt.ylabel('Num. property-specific keys')
-    plt.savefig('fig/row-pruning-cmp-n-ps-keys.png', bbox_inches='tight', dpi=200)
+#     for dt in data_type:
+#         gender_ps = datas[dt]['gender'][::2]
+#         plt.plot(density[dt], gender_ps, color=colors[dt], marker='o', label=labels[dt])
+#         # phone_ps = datas[dt]['phone-type'][::2]
+#         # plt.plot(density[dt], phone_ps, color=colors[dt], marker='o', alpha=0.2)
+#     plt.legend()
+#     plt.xlabel('Density')
+#     plt.ylabel('Num. property-specific keys')
+#     plt.savefig('fig/row-pruning-cmp-n-ps-keys.png', bbox_inches='tight', dpi=200)
 
-def row_pruning_cmp_score():
-    properties = ['phone-type', 'gender']
-    data_type = ['regular', 'all-128', 'all-all']
-    data_pth = [f'data/{x}-row-pruning-score.json' for x in data_type]
-    rows = {
-        'regular': [512, 1024, 1536, 2048, 2560, 2688, 2816, 2944, 3072],
-        'all-128': [512, 1024, 1536, 2048, 2560, 2688, 2816, 2944, 3072],
-        'all-all': [598, 3072]
-    }
-    # Calculate density 
-    D = 3072 
-    density = {}
-    for k, v in rows.items():
-        density[k] = [i/D for i in v]
+# def row_pruning_cmp_score():
+#     properties = ['phone-type', 'gender']
+#     data_type = ['regular', 'all-128', 'all-all']
+#     data_pth = [f'data/{x}-row-pruning-score.json' for x in data_type]
+#     rows = {
+#         'regular': [512, 1024, 1536, 2048, 2560, 2688, 2816, 2944, 3072],
+#         'all-128': [512, 1024, 1536, 2048, 2560, 2688, 2816, 2944, 3072],
+#         'all-all': [598, 3072]
+#     }
+#     # Calculate density 
+#     D = 3072 
+#     density = {}
+#     for k, v in rows.items():
+#         density[k] = [i/D for i in v]
 
-    datas = {}
-    for k, pth in zip(data_type, data_pth):
-        with open(pth, 'r') as fp:
-            d = json.load(fp)
-        datas[k] = d
+#     datas = {}
+#     for k, pth in zip(data_type, data_pth):
+#         with open(pth, 'r') as fp:
+#             d = json.load(fp)
+#         datas[k] = d
 
-    colors = {
-        'regular': 'red', 
-        'all-128': 'blue', 
-        'all-all': 'green'
-    }
-    labels = {
-        'regular': 'regular', 
-        'all-128': 'proposed-128', 
-        'all-all': 'proposed-all'
-    }
+#     colors = {
+#         'regular': 'red', 
+#         'all-128': 'blue', 
+#         'all-all': 'green'
+#     }
+#     labels = {
+#         'regular': 'regular', 
+#         'all-128': 'proposed-128', 
+#         'all-all': 'proposed-all'
+#     }
 
-    for dt in data_type:
-        gender_score = datas[dt]['gender'][::2]
-        plt.plot(density[dt], gender_score, color=colors[dt], marker='o', label=labels[dt])
-        # phone_score = datas[dt]['phone-type'][::2]
-        # plt.plot(density[dt], phone_score, color=colors[dt], marker='o', alpha=0.2)
-    plt.legend()
-    plt.xlabel('Density')
-    plt.ylabel('Silhouette score')
-    plt.savefig('fig/row-pruning-cmp-score.png', bbox_inches='tight', dpi=200)
+#     for dt in data_type:
+#         gender_score = datas[dt]['gender'][::2]
+#         plt.plot(density[dt], gender_score, color=colors[dt], marker='o', label=labels[dt])
+#         # phone_score = datas[dt]['phone-type'][::2]
+#         # plt.plot(density[dt], phone_score, color=colors[dt], marker='o', alpha=0.2)
+#     plt.legend()
+#     plt.xlabel('Density')
+#     plt.ylabel('Silhouette score')
+#     plt.savefig('fig/row-pruning-cmp-score.png', bbox_inches='tight', dpi=200)
 
 def row_pruning_regular_n_ps_keys():
     properties = ['phone-type', 'gender', 'pitch', 'duration']
@@ -265,17 +265,94 @@ def row_pruning_regular_n_ps_keys():
         'duration': 'black'
     }
     labels = {
-        'regular': 'regular', 
-        'all-128': 'proposed-128', 
-        'all-all': 'proposed-all'
+        'phone-type': 'phoneme',
+        'gender': 'gender',
+        'pitch': 'pitch',
+        'duration': 'duration' 
     }
     for k, v in v_data.items():
-        plt.plot(range(len(ticks)), v, label=k, color=color[k], marker='o')
+        plt.plot(range(len(ticks)), v, label=labels[k], color=color[k], marker='o')
         plt.xticks(ticks=range(len(ticks)), labels=ticks, rotation=90)
     plt.xlabel('Rows')
     plt.ylabel('Num. Property-Specific Keys')
     plt.legend()
     plt.savefig('fig/row-pruning-regular-n-ps-keys.png', bbox_inches='tight', dpi=200)
+
+def row_pruning_pr():
+    # methods = ['regular', 'proposed-128', 'proposed-all']
+    methods = ['regular', 'proposed-all']
+    per = {
+        'regular': [14.08, 9.89, 8.82, 8.92, 8.72, 8.17],
+        'proposed-128': [],
+        'proposed-all': [10.48, 8.17]
+    }
+    rows = {
+        'regular': [512, 1024, 1536, 2048, 2560, 3072],
+        'proposed-128': [512, 1024, 1536, 2048, 2560, 3072],
+        'proposed-all': [598, 3072]
+    }
+    # Calculate density 
+    D = 3072 
+    density = {}
+    for k, v in rows.items():
+        density[k] = [i/D for i in v]
+
+    colors = {
+        'regular': 'red',
+        'proposed-128': 'blue',
+        'proposed-all': 'green'
+    }
+    labels = {
+        'regular': 'regular',
+        'proposed-128': 'proposed-128',
+        'proposed-all': 'porposed-all'
+    }
+
+    for m in methods:
+        plt.plot(density[m], per[m], label=labels[m], color=colors[m], marker='o')
+    plt.legend()
+    plt.axhline(per['regular'][-1], linestyle='--', color='black')
+    plt.ylim(7, 22)
+    plt.xlabel('Density')
+    plt.ylabel('PER(%)')
+    plt.savefig('fig/row-pruning-pr.png', bbox_inches='tight', dpi=200)
+
+def row_pruning_sid():
+    # methods = ['regular', 'proposed-128', 'proposed-all']
+    methods = ['regular', 'proposed-all']
+    acc = {
+        'regular': [51.04, 54.93, 59.77, 60.35, 62.63, 63.96],
+        'proposed-128': [],
+        'proposed-all': [58.24, 63.96]
+    }
+    rows = {
+        'regular': [512, 1024, 1536, 2048, 2560, 3072],
+        'proposed-128': [512, 1024, 1536, 2048, 2560, 3072],
+        'proposed-all': [598, 3072]
+    }
+    # Calculate density 
+    D = 3072 
+    density = {}
+    for k, v in rows.items():
+        density[k] = [i/D for i in v]
+    colors = {
+        'regular': 'red',
+        'proposed-128': 'blue',
+        'proposed-all': 'green'
+    }
+    labels = {
+        'regular': 'regular',
+        'proposed-128': 'proposed-128',
+        'proposed-all': 'porposed-all'
+    }
+    for m in methods:
+        plt.plot(density[m], [100-i for i in acc[m]], label=labels[m], color=colors[m], marker='o')
+    plt.legend()
+    plt.axhline(100-acc['regular'][-1], linestyle='--', color='black')
+    plt.ylim(35, 50)
+    plt.xlabel('Density')
+    plt.ylabel('ERR(%)')
+    plt.savefig('fig/row-pruning-sid.png', bbox_inches='tight', dpi=200)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -283,7 +360,7 @@ if __name__ == '__main__':
         choices=['mds_results', 'layer_compare', 
                 'model_compare', 'layer_n_ps_compare',
                 'venn_ps_keys', 'row_pruning_regular_n_ps_keys',
-                'row_pruning_cmp_score', 'row_pruning_cmp_n_ps_keys']
+                'row_pruning_pr', 'row_pruning_sid']
             ,help='Mode of drawing figure')
     args = parser.parse_args()
     eval(args.mode)()
