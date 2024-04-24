@@ -18,5 +18,5 @@ python3 get_phone_align_to_frame.py ~/LibriSpeechMFA/dev-clean/ ./data/pl_pth_me
 # Calculate matching probability of phonemes and keys 
 HuBERT Base on LibriSpeech dev-clean subset as example (for gender)
 ```
-python3 match_phone_s3prl.py -m hubert_base -f info/dev-clean-framewise-phone-merge-20ms.json -s match_prob_hubert.pkl -d ~/LibriSpeech/dev-clean/ -t mid-phone -c gender
+python3 match_phone_s3prl.py -m hubert_base -f ./data/dev-clean-framewise-phone.jso -s match_prob_hubert.pkl -d ~/LibriSpeech/dev-clean/ -t mid-phone -c gender
 ```
