@@ -1,22 +1,9 @@
 # Speech-SSL-FFN-Analysis
 
-# Preprocessing 
-1. Generate framewise phoneme label with [Montreal Force aliger](https://github.com/MontrealCorpusTools/Montreal-Forced-Aligner)
-2. Get phoneme label set 
-```
-python3 get_phone_label.py ~/LibriSpeechMFA/dev-clean/ ./data/pl_pth.json 
-```
-3. Merge phoneme to total number of 39 if needed
-```
-python3 merge_phone.py ./data/pl_pth.json ./data/pl_pth_merge.json 
-```
-4. Get phoneme label (index) aligning to frame in json format 
-```
-python3 get_phone_align_to_frame.py ~/LibriSpeechMFA/dev-clean/ ./data/pl_pth_merge.json ./data/dev-clean-framewise-phone.json 20 1 
-```
-
-# Calculate matching probability of phonemes and keys 
-HuBERT Base on LibriSpeech dev-clean subset as example (for gender)
-```
-python3 match_phone_s3prl.py -m hubert_base -f ./data/dev-clean-framewise-phone.jso -s match_prob_hubert.pkl -d ~/LibriSpeech/dev-clean/ -t mid-phone -c gender
-```
+## Example of Generate Property-Specific Keys for Gender 
+1. Copy modified files in s3prl/upstream into original s3prl
+2. Generate property-specific keys of pretrained HuBERT base for gender 
+  ```
+  bash generate.sh [MFA Directory] [Librispeech Directory] [Processing Stage]
+  bash generate.sh /home/nervjack2/Desktop/dataset/LibriSpeechMFA/dev-clean/ /home/nervjack2/Desktop/dataset/LibriSpeech 0
+  ```
