@@ -1,6 +1,6 @@
 # Speech-SSL-FFN-Analysis
 
-## Example of Generate Property-Sp/ecific Keys for Gender 
+## Example of Generate Property-Specific Keys for Gender 
 1. Copy modified files in s3prl/upstream into original s3prl
 2. Generate property-specific keys for gender 
   ```
