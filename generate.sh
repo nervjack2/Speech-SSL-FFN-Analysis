@@ -22,4 +22,4 @@ python3 match_phone_s3prl.py -m hubert_base -f framewise-phone-merge.json -s hub
 fi 
 # Stage 3: Find property-specific keys 
 echo "Stage 3: Find property-specific keys"
-python3 find_ps_keys.py -p hubert-gender.pkl -s hubert-gender-ps-keys.json -l phone-label-merge.json
+python3 find_ps_keys.py -p hubert-gender.pkl -s hubert-gender-ps-keys.json -l phone-label-merge.jso
