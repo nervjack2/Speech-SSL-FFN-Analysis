@@ -10,7 +10,7 @@ from data import DataProcessor
 from tools import get_monophone_end, get_monophone_mid, get_monophone_start
 from s3prl.hub import *
 
-def main(model_name, mfa_json, save_pth, data_pth, phone_type, extra_class, merge):
+def main(model_name, mfa_json, save_pth, data_pth, phone_type, extra_class, merge, extra_info=None):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     # Load upstream model 
     upstream_model = eval(model_name)().to(device)
@@ -42,17 +42,17 @@ def main(model_name, mfa_json, save_pth, data_pth, phone_type, extra_class, merg
     elif extra_class == 'gender':
         record = [torch.zeros((N, D)) for i in range(12)] 
         record_n = [[0 for i in range(N*2)] for i in range(12)]
-        with open('../info/libri-dev-spk-gender.json', 'r') as fp:
+        with open(extra_info, 'r') as fp:
             gender_dict = json.load(fp)
     elif extra_class == 'duration':
         record = [torch.zeros((N, D)) for i in range(12)] 
         record_n = [[0 for i in range(N*3)] for i in range(12)]
-        with open('../info/phone-duration-dev-clean.json', 'r') as fp:
+        with open(extra_info, 'r') as fp:
             duration_dict = json.load(fp)
     elif extra_class == 'pitch':
         record = [torch.zeros((N, D)) for i in range(12)] 
         record_n = [[0 for i in range(N*3)] for i in range(12)]
-        with open('../info/pitch-discrete-dev-clean.json', 'r') as fp:
+        with open(extra_info, 'r') as fp:
             pitch_dict = json.load(fp)
 
     for pth in tqdm(wav_pths): 
@@ -133,5 +133,6 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--phone-type', help='Phone type', choices=['end-phone', 'mid-phone', 'start-phone'])
     parser.add_argument('-c', '--extra-class', choices=['phone-type', 'gender', 'pitch', 'duration'])
     parser.add_argument('--merge', action='store_true')
+    parser.add_argument('--extra-info', help='Information for gender, pitch, and duration')
     args = parser.parse_args()
     main(**vars(args))
