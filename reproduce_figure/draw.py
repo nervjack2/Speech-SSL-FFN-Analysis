@@ -354,13 +354,26 @@ def row_pruning_sid():
     plt.ylabel('ERR(%)')
     plt.savefig('fig/row-pruning-sid.png', bbox_inches='tight', dpi=200)
 
+def match_prob():
+    v_data = np.load('data/match_prob.npy')
+    n_dim = v_data.shape[-1]
+    n_phone = 3
+    random_baseline = round(3072*0.01)/3072
+    phone_name = ['AH', 'F', 'UH']
+    fig, axs = plt.subplots(1, n_phone, figsize=(10,4))
+    for i in range(n_phone):
+        axs[i].bar(range(n_dim), v_data[i])
+        axs[i].title.set_text(phone_name[i])
+        axs[i].axhline(y=random_baseline, color='r', linestyle='-', linewidth=1)
+    plt.savefig('fig/match_prob.png', bbox_inches='tight', dpi=200)
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', '--mode', 
         choices=['mds_results', 'layer_compare', 
                 'model_compare', 'layer_n_ps_compare',
                 'venn_ps_keys', 'row_pruning_regular_n_ps_keys',
-                'row_pruning_pr', 'row_pruning_sid']
+                'row_pruning_pr', 'row_pruning_sid', 'match_prob']
             ,help='Mode of drawing figure')
     args = parser.parse_args()
     eval(args.mode)()
