@@ -54,7 +54,7 @@ def main(model_pth, cluster_pth, save_pth, fp, mean_std_pth, data_pth, select):
         data_len = len(wav_pths)
         wav_pths = random.sample(wav_pths, int(data_len*0.1))
     else:
-        wav_pths = list(glob.glob(data_pth+"**/*.flac", recursive=True))
+        wav_pths = list(glob.glob(data_pth+"**/*.flac", recursive=True))[:200]
 
     n_correct = np.zeros((NLAYER))
     n_total = np.zeros((NLAYER))
