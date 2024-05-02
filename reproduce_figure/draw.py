@@ -367,13 +367,32 @@ def match_prob():
         axs[i].axhline(y=random_baseline, color='r', linestyle='-', linewidth=1)
     plt.savefig('fig/match_prob.png', bbox_inches='tight', dpi=200)
 
+def generate_colors(N):
+    cmap = plt.get_cmap('gist_rainbow')
+    return [cmap(1.*i/N) for i in range(N)]
+
+def values_tsne():
+    v_data_2d = np.load('data/values-8th-layer.npy')
+    n_cluster = 5
+    n_sample = 600
+    color = generate_colors(n_cluster)
+    sum_ = 0
+    for idx in range(n_cluster):
+        cluster_emb = v_data_2d[sum_:sum_+n_sample,:]
+        plt.scatter(cluster_emb[:,0], cluster_emb[:,1], color=color[idx], label='Cluster '+str(idx))
+        sum_ += n_sample
+    plt.axis('off')
+    plt.title(f'Layer 8')
+    plt.savefig('fig/values-tsne.png', bbox_inches='tight', dpi=200)
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', '--mode', 
         choices=['mds_results', 'layer_compare', 
                 'model_compare', 'layer_n_ps_compare',
                 'venn_ps_keys', 'row_pruning_regular_n_ps_keys',
-                'row_pruning_pr', 'row_pruning_sid', 'match_prob']
+                'row_pruning_pr', 'row_pruning_sid', 'match_prob',
+                'values_tsne']
             ,help='Mode of drawing figure')
     args = parser.parse_args()
     eval(args.mode)()
