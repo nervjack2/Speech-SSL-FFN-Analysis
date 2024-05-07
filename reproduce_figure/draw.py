@@ -279,17 +279,22 @@ def row_pruning_regular_n_ps_keys():
     plt.savefig('fig/row-pruning-regular-n-ps-keys.png', bbox_inches='tight', dpi=200)
 
 def row_pruning_pr():
-    # methods = ['regular', 'proposed-128', 'proposed-all']
-    methods = ['regular', 'proposed-all']
+    methods = ['regular', 'all-128', 'all-all', 'each-all']
     per = {
         'regular': [14.08, 9.89, 8.82, 8.92, 8.72, 8.17],
-        'proposed-128': [],
-        'proposed-all': [10.48, 8.17]
+        'all-128': [10.80, 8.99, 7.98, 7.42, 7.14, 8.17],
+        'all-all': [10.66, 8.17],
+        'each-all': [10.95, 8.17],
+        'topline': [6.25, 2.42],
+        'topline2': [5.77, 8.17]
     }
     rows = {
         'regular': [512, 1024, 1536, 2048, 2560, 3072],
-        'proposed-128': [512, 1024, 1536, 2048, 2560, 3072],
-        'proposed-all': [598, 3072]
+        'all-128': [512, 1024, 1536, 2048, 2560, 3072],
+        'all-all': [598, 3072],
+        'each-all': [434, 3072],
+        'topline': [512, 3072],
+        'topline2': [512, 3072],
     }
     # Calculate density 
     D = 3072 
@@ -298,16 +303,21 @@ def row_pruning_pr():
         density[k] = [i/D for i in v]
 
     colors = {
-        'regular': 'red',
-        'proposed-128': 'blue',
-        'proposed-all': 'green'
+        'regular': 'C0',
+        'all-128': 'C1',
+        'all-all': 'C2',
+        'each-all': 'C3',
+        'topline': 'C4',
+        'topline2': 'C5',
     }
     labels = {
         'regular': 'regular',
-        'proposed-128': 'proposed-128',
-        'proposed-all': 'porposed-all'
+        'all-128': 'all-128',
+        'all-all': 'all-all',
+        'each-all': 'each-all',
+        'topline': 'Oracle',
+        'topline2': 'topline2',
     }
-
     for m in methods:
         plt.plot(density[m], per[m], label=labels[m], color=colors[m], marker='o')
     plt.legend()
@@ -318,17 +328,22 @@ def row_pruning_pr():
     plt.savefig('fig/row-pruning-pr.png', bbox_inches='tight', dpi=200)
 
 def row_pruning_sid():
-    # methods = ['regular', 'proposed-128', 'proposed-all']
-    methods = ['regular', 'proposed-all']
+    methods = ['regular', 'all-128', 'all-all', 'each-all']
     acc = {
         'regular': [51.04, 54.93, 59.77, 60.35, 62.63, 63.96],
-        'proposed-128': [],
-        'proposed-all': [58.24, 63.96]
+        'all-128': [54.10, 55.41, 59.21, 60.98, 62.71, 63.96],
+        'all-all': [58.89, 63.96],
+        'each-all': [59.37, 63.96],
+        'topline': [73.36, 81.99], # Finetuning + Finetuning
+        'topline2': [24.33, 63.96] # Fix Upstream + Finetuning
     }
     rows = {
         'regular': [512, 1024, 1536, 2048, 2560, 3072],
-        'proposed-128': [512, 1024, 1536, 2048, 2560, 3072],
-        'proposed-all': [598, 3072]
+        'all-128': [512, 1024, 1536, 2048, 2560, 3072],
+        'all-all': [598, 3072],
+        'each-all': [434, 3072],
+        'topline': [512, 3072],
+        'topline2': [512, 3072],
     }
     # Calculate density 
     D = 3072 
@@ -336,14 +351,20 @@ def row_pruning_sid():
     for k, v in rows.items():
         density[k] = [i/D for i in v]
     colors = {
-        'regular': 'red',
-        'proposed-128': 'blue',
-        'proposed-all': 'green'
+        'regular': 'C0',
+        'all-128': 'C1',
+        'all-all': 'C2',
+        'each-all': 'C3',
+        'topline': 'C4',
+        'topline2': 'C5',
     }
     labels = {
         'regular': 'regular',
-        'proposed-128': 'proposed-128',
-        'proposed-all': 'porposed-all'
+        'all-128': 'all-128',
+        'all-all': 'all-all',
+        'each-all': 'each-all',
+        'topline': 'Oracle',
+        'topline2': 'topline2',
     }
     for m in methods:
         plt.plot(density[m], [100-i for i in acc[m]], label=labels[m], color=colors[m], marker='o')
@@ -385,6 +406,62 @@ def values_tsne():
     plt.title(f'Layer 8')
     plt.savefig('fig/values-tsne.png', bbox_inches='tight', dpi=200)
 
+def mds_phoneme(phone_name):
+    v_data_2d = np.load('data/mds-phoneme-2d.npy')
+    color = ['red', 'blue', 'green']
+    label = ['vowels', 'voiced-consonants', 'unvoiced-consonants']
+    num_type = [15, 15, 9]
+    acc = 0 
+    for idx, n in enumerate(num_type):
+        plt.scatter(v_data_2d[acc:acc+n,0], v_data_2d[acc:acc+n,1], c=color[idx], label=label[idx])
+        acc += n 
+    for idx, name in enumerate(phone_name):
+        plt.annotate(name, (v_data_2d[idx,0],v_data_2d[idx,1]))
+    plt.legend(loc='upper right', fontsize=6)
+    plt.axis('off')
+    plt.title(f'Layer 8')
+    plt.savefig('fig/phone.png', bbox_inches='tight', dpi=200)
+    plt.clf()
+
+# def sort_phoneme_by_type(phone_name):
+#     phoneme_type = {
+#         'vowel': {
+#             'front-vowels': ['IY', 'IH', 'EH', 'AE'],
+#             'central-vowels': ['AH', 'ER', 'UH'],
+#             'back-vowels': ['UW', 'AO', 'AA'],
+#             'diphthongs': ['EY', 'AY', 'OW', 'OY', 'AW'],
+#         },
+#         # 'voiced-consonants': {
+
+#         # },
+#         # 'unvoiced-consonants': {
+
+#         # }
+#     }
+#     phone_idx = []
+#     for k, v in phoneme_type['vowel'].items():
+#         for vv in v:
+            
+
+# def phoneme_tree():
+#     phone_name = ['AH', 'IH', 'IY', 'EH', 'ER', 'AE', 'AY', 'EY', 'AO', 'AA', 'OW', 'UW', 'AW', 'UH', 'OY', 'N', 'D', 'R', 'L', 'DH', 'M', 'Z', 'W', 'V', 'B', 'NG', 'G', 'Y', 'JH', 'ZH', 'T', 'S', 'K', 'HH', 'F', 'P', 'SH', 'TH', 'CH']
+#     phoen_idx, num_type = sort_phoneme_by_type(phone_name)
+#     v_data_2d = np.load('data/mds-phoneme-2d.npy')
+#     color = ['red', 'blue', 'green']
+#     label = ['vowels', 'voiced-consonants', 'unvoiced-consonants']
+#     # num_type = [15, 15, 9]
+#     acc = 0 
+#     for idx, n in enumerate(num_type):
+#         plt.scatter(v_data_2d[acc:acc+n,0], v_data_2d[acc:acc+n,1], c=color[idx], label=label[idx])
+#         acc += n 
+#     for idx, name in enumerate(phone_name):
+#         plt.annotate(name, (v_data_2d[idx,0],v_data_2d[idx,1]))
+#     plt.legend(loc='upper right', fontsize=6)
+#     plt.axis('off')
+#     plt.title(f'Layer 8')
+#     plt.savefig('fig/phone.png', bbox_inches='tight', dpi=200)
+#     plt.clf()
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', '--mode', 
@@ -392,7 +469,7 @@ if __name__ == '__main__':
                 'model_compare', 'layer_n_ps_compare',
                 'venn_ps_keys', 'row_pruning_regular_n_ps_keys',
                 'row_pruning_pr', 'row_pruning_sid', 'match_prob',
-                'values_tsne']
+                'values_tsne', 'phoneme_tree']
             ,help='Mode of drawing figure')
     args = parser.parse_args()
     eval(args.mode)()
