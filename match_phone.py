@@ -50,17 +50,17 @@ def main(model_pth, mfa_json, save_pth, fp, mean_std_pth, data_pth, phone_type, 
         record_n = [[0 for i in range(N)] for i in range(12)]
     elif extra_class == 'gender':
         record = [torch.zeros((N, D[i])) for i in range(12)] 
-        record_n = [[0 for i in range(N*2)] for i in range(12)]
+        record_n = [[0 for i in range(N)] for i in range(12)]
         with open('./info/libri-dev-spk-gender.json', 'r') as fp:
             gender_dict = json.load(fp)
     elif extra_class == 'duration':
         record = [torch.zeros((N, D[i])) for i in range(12)] 
-        record_n = [[0 for i in range(N*3)] for i in range(12)]
+        record_n = [[0 for i in range(N)] for i in range(12)]
         with open('./info/phone-duration-dev-clean.json', 'r') as fp:
             duration_dict = json.load(fp)
     elif extra_class == 'pitch':
         record = [torch.zeros((N, D[i])) for i in range(12)] 
-        record_n = [[0 for i in range(N*3)] for i in range(12)]
+        record_n = [[0 for i in range(N)] for i in range(12)]
         with open('./info/pitch-discrete-dev-clean.json', 'r') as fp:
             pitch_dict = json.load(fp)
 
