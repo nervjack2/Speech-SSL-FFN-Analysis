@@ -43,7 +43,7 @@ def main(model_pth, model_pth_down, mfa_json, save_pth, fp, mean_std_pth, data_p
 
     NLAYER = upstream_config['encoder_layers']
     D = upstream_config['encoder_ffn_embed_dim']
-    D = D if type(D) == list else [D for i in range(NLAYER)]
+    D = rows if type(rows) == list else [rows for i in range(NLAYER)]
     N_phone = 41 if merge else 70
 
     N_list = {
@@ -108,7 +108,7 @@ def main(model_pth, model_pth_down, mfa_json, save_pth, fp, mean_std_pth, data_p
             tau = round(D[layer_idx]*0.01)
             for k in range(len(check_idx)):
                 keys = torch.abs(check_keys[k]) # D 
-                assert D[layer_idx] == len(keys)
+                assert D[layer_idx] == len(keys), f"{D[layer_idx], len(keys)}"
                 p = check_phone[k] 
                 _, topk_indices = torch.topk(keys, tau)
                 topk_indices = topk_indices.cpu()
