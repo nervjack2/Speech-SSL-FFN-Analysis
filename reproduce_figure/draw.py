@@ -137,10 +137,10 @@ def layer_n_ps_compare():
     with open('data/layer_n_ps_keys.json', 'r') as fp:
         layer_n_ps_keys = json.load(fp)
     color = {
-        'phone-type': 'red',
-        'gender': 'blue',
-        'pitch': 'green',
-        'duration': 'black'
+        'phone-type': 'C0',
+        'gender': 'C1',
+        'pitch': 'C2',
+        'duration': 'C3'
     }
     label = {
         'phone-type': 'phoneme',
@@ -149,10 +149,12 @@ def layer_n_ps_compare():
         'duration': 'duration'
     }
     for k, v in layer_n_ps_keys.items():
+        if k == 'duration':
+            continue 
         plt.plot(range(1, 12+1), v, label=label[k], color=color[k], marker='o')
     plt.legend()
     plt.xlabel('Layer')
-    plt.ylabel('Num. property-specific keys')
+    plt.ylabel('Number of Property Neurons')
     plt.savefig('fig/layer-n-compare.png', bbox_inches='tight', dpi=200)
 
 def venn_ps_keys():
