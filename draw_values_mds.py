@@ -42,8 +42,8 @@ def draw_value(embs, labels, v_idx, v_count, save_dir, n_sample, reduce_method, 
         plt.scatter(cluster_emb[:,0], cluster_emb[:,1], color=color[idx], label='Cluster '+str(idx))
         sum_ += n_sample
     plt.axis('off')
-    plt.title(f'Layer {layer}')
-    save_pth = os.path.join(save_dir, f'layer-{layer}.png')
+    plt.title(f'Layer {layer+1}')
+    save_pth = os.path.join(save_dir, f'layer-{layer+1}.png')
     plt.savefig(save_pth, bbox_inches='tight', dpi=200)
     plt.clf()
 
