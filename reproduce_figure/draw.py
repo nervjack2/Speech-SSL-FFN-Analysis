@@ -17,7 +17,7 @@ def mds_phoneme(phone_name):
         plt.annotate(name, (v_data_2d[idx,0],v_data_2d[idx,1]))
     plt.legend(loc='upper right', fontsize=6)
     plt.axis('off')
-    plt.title(f'Layer 8')
+    # plt.title(f'Layer 8')
     plt.savefig('fig/phone.png', bbox_inches='tight', dpi=200)
     plt.clf()
 
@@ -33,7 +33,7 @@ def mds_gender(phone_name):
         plt.annotate(name, (v_data_2d[n_phone+idx,0],v_data_2d[n_phone+idx,1]))
     plt.legend(loc='upper right', fontsize=6)
     plt.axis('off')
-    plt.title(f'Layer 1')
+    # plt.title(f'Layer 1')
     plt.savefig('fig/gender.png', bbox_inches='tight', dpi=200)
     plt.clf()
 
@@ -50,7 +50,7 @@ def mds_pitch(phone_name):
         plt.annotate(name, (v_data_2d[n_phone*2+idx,0],v_data_2d[n_phone*2+idx,1]))
     plt.legend(loc='upper right', fontsize=6)
     plt.axis('off')
-    plt.title(f'Layer 1')
+    # plt.title(f'Layer 1')
     plt.savefig('fig/pitch.png', bbox_inches='tight', dpi=200)
     plt.clf()
 
@@ -67,7 +67,7 @@ def mds_duration(phone_name):
         plt.annotate(name, (v_data_2d[n_phone*2+idx,0],v_data_2d[n_phone*2+idx,1]))
     plt.legend(loc='upper right', fontsize=6)
     plt.axis('off')
-    plt.title(f'Layer 6')
+    # plt.title(f'Layer 6')
     plt.savefig('fig/duration.png', bbox_inches='tight', dpi=200)
     plt.clf()
 
@@ -81,10 +81,10 @@ def layer_compare():
     with open('data/layer_score.json', 'r') as fp:
         results = json.load(fp)
     color = {
-        'phone-type': 'red',
-        'gender': 'blue',
-        'pitch': 'green',
-        'duration': 'black'
+        'phone-type': 'C0',
+        'gender': 'C1',
+        'pitch': 'C2',
+        'duration': 'C3'
     }
     labels = {
         'phone-type': 'phoneme',
@@ -93,6 +93,8 @@ def layer_compare():
         'duration': 'duration' 
     }
     for k, v in results.items():
+        if k == 'duration':
+            continue
         plt.plot(range(1,13), v, label=labels[k], c=color[k], marker='o')
     plt.xticks(ticks=range(1,13))
     plt.xlabel('Layer')
@@ -106,10 +108,10 @@ def model_compare():
     with open('data/model_score.json', 'r') as fp:
         model_score = json.load(fp)
     color = {
-        'melhubert_base': 'red',
-        'hubert_base': 'blue',
-        'wav2vec2_base': 'green',
-        'wavlm_base': 'black'
+        'melhubert_base': 'C0',
+        'hubert_base': 'C1',
+        'wav2vec2_base': 'C2',
+        'wavlm_base': 'C3'
     }
     label = {
         'melhubert_base': 'MelHuBERT',
@@ -160,90 +162,6 @@ def venn_ps_keys():
     venn = venn3(subsets=set_sizes, set_labels=p_name)
     plt.savefig('fig/venn-ps-keys-layer-1.png', bbox_inches='tight', dpi=200)
 
-# def row_pruning_cmp_n_ps_keys():
-#     properties = ['phone-type', 'gender']
-#     data_type = ['regular', 'all-128', 'all-all']
-#     data_pth = [f'data/{x}-row-pruning-n-ps-keys.json' for x in data_type]
-#     rows = {
-#         'regular': [512, 1024, 1536, 2048, 2560, 2688, 2816, 2944, 3072],
-#         'all-128': [512, 1024, 1536, 2048, 2560, 2688, 2816, 2944, 3072],
-#         'all-all': [598, 3072]
-#     }
-#     # Calculate density 
-#     D = 3072 
-#     density = {}
-#     for k, v in rows.items():
-#         density[k] = [i/D for i in v]
-
-#     datas = {}
-#     for k, pth in zip(data_type, data_pth):
-#         with open(pth, 'r') as fp:
-#             d = json.load(fp)
-#         datas[k] = d
-
-#     colors = {
-#         'regular': 'red', 
-#         'all-128': 'blue', 
-#         'all-all': 'green'
-#     }
-#     labels = {
-#         'regular': 'regular', 
-#         'all-128': 'proposed-128', 
-#         'all-all': 'proposed-all'
-#     }
-
-#     for dt in data_type:
-#         gender_ps = datas[dt]['gender'][::2]
-#         plt.plot(density[dt], gender_ps, color=colors[dt], marker='o', label=labels[dt])
-#         # phone_ps = datas[dt]['phone-type'][::2]
-#         # plt.plot(density[dt], phone_ps, color=colors[dt], marker='o', alpha=0.2)
-#     plt.legend()
-#     plt.xlabel('Density')
-#     plt.ylabel('Num. property-specific keys')
-#     plt.savefig('fig/row-pruning-cmp-n-ps-keys.png', bbox_inches='tight', dpi=200)
-
-# def row_pruning_cmp_score():
-#     properties = ['phone-type', 'gender']
-#     data_type = ['regular', 'all-128', 'all-all']
-#     data_pth = [f'data/{x}-row-pruning-score.json' for x in data_type]
-#     rows = {
-#         'regular': [512, 1024, 1536, 2048, 2560, 2688, 2816, 2944, 3072],
-#         'all-128': [512, 1024, 1536, 2048, 2560, 2688, 2816, 2944, 3072],
-#         'all-all': [598, 3072]
-#     }
-#     # Calculate density 
-#     D = 3072 
-#     density = {}
-#     for k, v in rows.items():
-#         density[k] = [i/D for i in v]
-
-#     datas = {}
-#     for k, pth in zip(data_type, data_pth):
-#         with open(pth, 'r') as fp:
-#             d = json.load(fp)
-#         datas[k] = d
-
-#     colors = {
-#         'regular': 'red', 
-#         'all-128': 'blue', 
-#         'all-all': 'green'
-#     }
-#     labels = {
-#         'regular': 'regular', 
-#         'all-128': 'proposed-128', 
-#         'all-all': 'proposed-all'
-#     }
-
-#     for dt in data_type:
-#         gender_score = datas[dt]['gender'][::2]
-#         plt.plot(density[dt], gender_score, color=colors[dt], marker='o', label=labels[dt])
-#         # phone_score = datas[dt]['phone-type'][::2]
-#         # plt.plot(density[dt], phone_score, color=colors[dt], marker='o', alpha=0.2)
-#     plt.legend()
-#     plt.xlabel('Density')
-#     plt.ylabel('Silhouette score')
-#     plt.savefig('fig/row-pruning-cmp-score.png', bbox_inches='tight', dpi=200)
-
 def row_pruning_regular_n_ps_keys():
     properties = ['phone-type', 'gender', 'pitch', 'duration']
     data_pth = 'data/regular-row-pruning-n-ps-keys.json'
@@ -280,7 +198,7 @@ def row_pruning_regular_n_ps_keys():
 
 def row_pruning_pr():
     # methods = ['regular', 'proposed-128', 'proposed-all']
-    methods = ['regular', 'proposed-all']
+    methods = ['regular', 'proposed']
     per = {
         'regular': [14.08, 9.89, 8.82, 8.92, 8.72, 8.17],
         'proposed-128': [],
@@ -357,14 +275,13 @@ def row_pruning_sid():
 def match_prob():
     v_data = np.load('data/match_prob.npy')
     n_dim = v_data.shape[-1]
-    n_phone = 3
     random_baseline = round(3072*0.01)/3072
-    phone_name = ['AH', 'F', 'UH']
-    fig, axs = plt.subplots(1, n_phone, figsize=(10,4))
-    for i in range(n_phone):
-        axs[i].bar(range(n_dim), v_data[i])
-        axs[i].title.set_text(phone_name[i])
-        axs[i].axhline(y=random_baseline, color='r', linestyle='-', linewidth=1)
+    phone_name = ['AH']
+    plt.bar(range(n_dim), v_data[0])
+    plt.xlabel('Neurons')
+    plt.ylabel('Matching Probability (%)')
+    plt.axhline(y=random_baseline, color='r', linestyle='-', linewidth=1)
+    plt.text(x=2600, y=random_baseline+0.011, s='random baseline', color='r', ha='center', fontsize=12)
     plt.savefig('fig/match_prob.png', bbox_inches='tight', dpi=200)
 
 def generate_colors(N):
