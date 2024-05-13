@@ -197,17 +197,18 @@ def row_pruning_regular_n_ps_keys():
     plt.savefig('fig/row-pruning-regular-n-ps-keys.png', bbox_inches='tight', dpi=200)
 
 def row_pruning_pr():
-    # methods = ['regular', 'proposed-128', 'proposed-all']
-    methods = ['regular', 'proposed']
+    methods = ['regular', 'protect-128', 'protect-all']
     per = {
         'regular': [14.08, 9.89, 8.82, 8.92, 8.72, 8.17],
-        'proposed-128': [],
-        'proposed-all': [10.48, 8.17]
+        'protect-128': [10.80, 8.99, 7.98, 7.42, 7.14, 8.17],
+        'protect-all': [10.66, 8.17],
+        # 'each-all': [10.95, 8.17],
     }
     rows = {
         'regular': [512, 1024, 1536, 2048, 2560, 3072],
-        'proposed-128': [512, 1024, 1536, 2048, 2560, 3072],
-        'proposed-all': [598, 3072]
+        'protect-128': [512, 1024, 1536, 2048, 2560, 3072],
+        'protect-all': [598, 3072],
+        # 'each-all': [434, 3072],
     }
     # Calculate density 
     D = 3072 
@@ -216,37 +217,40 @@ def row_pruning_pr():
         density[k] = [i/D for i in v]
 
     colors = {
-        'regular': 'red',
-        'proposed-128': 'blue',
-        'proposed-all': 'green'
+        'regular': 'C0',
+        'protect-128': 'C1',
+        'protect-all': 'C2',
+        # 'each-all': 'C3',
     }
     labels = {
         'regular': 'regular',
-        'proposed-128': 'proposed-128',
-        'proposed-all': 'porposed-all'
+        'protect-128': 'protect-iterative',
+        'protect-all': 'protect-one-shot',
+        # 'each-all': 'each-all',
     }
-
     for m in methods:
         plt.plot(density[m], per[m], label=labels[m], color=colors[m], marker='o')
     plt.legend()
     plt.axhline(per['regular'][-1], linestyle='--', color='black')
-    plt.ylim(7, 22)
+    plt.ylim(7, 15)
     plt.xlabel('Density')
     plt.ylabel('PER(%)')
     plt.savefig('fig/row-pruning-pr.png', bbox_inches='tight', dpi=200)
+    plt.clf()
 
 def row_pruning_sid():
-    # methods = ['regular', 'proposed-128', 'proposed-all']
-    methods = ['regular', 'proposed-all']
+    methods = ['regular', 'protect-all', 'protect-128']
     acc = {
         'regular': [51.04, 54.93, 59.77, 60.35, 62.63, 63.96],
-        'proposed-128': [],
-        'proposed-all': [58.24, 63.96]
+        'protect-128': [54.10, 55.41, 59.21, 60.98, 62.71, 63.96],
+        'protect-all': [58.89, 63.96],
+        # 'each-all': [59.37, 63.96],
     }
     rows = {
         'regular': [512, 1024, 1536, 2048, 2560, 3072],
-        'proposed-128': [512, 1024, 1536, 2048, 2560, 3072],
-        'proposed-all': [598, 3072]
+        'protect-128': [512, 1024, 1536, 2048, 2560, 3072],
+        'protect-all': [598, 3072],
+        # 'each-all': [434, 3072],
     }
     # Calculate density 
     D = 3072 
@@ -254,14 +258,16 @@ def row_pruning_sid():
     for k, v in rows.items():
         density[k] = [i/D for i in v]
     colors = {
-        'regular': 'red',
-        'proposed-128': 'blue',
-        'proposed-all': 'green'
+        'regular': 'C0',
+        'protect-128': 'C1',
+        'protect-all': 'C2',
+        # 'each-all': 'C3',
     }
     labels = {
         'regular': 'regular',
-        'proposed-128': 'proposed-128',
-        'proposed-all': 'porposed-all'
+        'protect-128': 'protect-iterative',
+        'protect-all': 'protect-one-shot',
+        # 'each-all': 'each-all',
     }
     for m in methods:
         plt.plot(density[m], [100-i for i in acc[m]], label=labels[m], color=colors[m], marker='o')
@@ -271,6 +277,7 @@ def row_pruning_sid():
     plt.xlabel('Density')
     plt.ylabel('ERR(%)')
     plt.savefig('fig/row-pruning-sid.png', bbox_inches='tight', dpi=200)
+    plt.clf()
 
 def match_prob():
     v_data = np.load('data/match_prob.npy')
@@ -401,11 +408,15 @@ def task_specific_bar():
     ax2.set_ylabel('SID ERR (%)')
     # Legend
     plt.savefig('fig/task-specific-bar.png', bbox_inches='tight', dpi=200)
-
+    
 def task_specific_pruning():
     task_specific_pr()
     task_specific_sid()
     task_specific_bar()
+
+def ssl_pruning():
+    row_pruning_pr()
+    row_pruning_sid()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -414,7 +425,7 @@ if __name__ == '__main__':
                 'model_compare', 'layer_n_ps_compare',
                 'venn_ps_keys', 'row_pruning_regular_n_ps_keys',
                 'row_pruning_pr', 'row_pruning_sid', 'match_prob',
-                'values_tsne', 'task_specific_pruning']
+                'values_tsne', 'task_specific_pruning', 'ssl_pruning']
             ,help='Mode of drawing figure')
     args = parser.parse_args()
     eval(args.mode)()
