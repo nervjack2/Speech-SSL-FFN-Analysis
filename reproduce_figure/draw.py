@@ -2,11 +2,17 @@ import argparse
 import numpy as np 
 import json 
 import matplotlib.pyplot as plt 
+import seaborn as sns 
 from matplotlib_venn import venn3
+
+sns.set()
+RED = '#FF4D4D'
+BLUE = '#6294FF'
+GREEN = '#91DD79'
 
 def mds_phoneme(phone_name):
     v_data_2d = np.load('data/mds-phoneme-2d.npy')
-    color = ['red', 'blue', 'green']
+    color = [RED, BLUE, GREEN]
     label = ['vowels', 'voiced-consonants', 'unvoiced-consonants']
     num_type = [15, 15, 9]
     acc = 0 
@@ -14,8 +20,8 @@ def mds_phoneme(phone_name):
         plt.scatter(v_data_2d[acc:acc+n,0], v_data_2d[acc:acc+n,1], c=color[idx], label=label[idx])
         acc += n 
     for idx, name in enumerate(phone_name):
-        plt.annotate(name, (v_data_2d[idx,0],v_data_2d[idx,1]))
-    plt.legend(loc='upper right', fontsize=6)
+        plt.annotate(name, (v_data_2d[idx,0],v_data_2d[idx,1]), fontsize=15)
+    plt.legend(loc='upper right', ncol=2, fontsize=13, framealpha=0.9)
     plt.axis('off')
     # plt.title(f'Layer 8')
     plt.savefig('fig/phone.png', bbox_inches='tight', dpi=200)
@@ -24,14 +30,14 @@ def mds_phoneme(phone_name):
 def mds_gender(phone_name):
     n_phone = len(phone_name)
     v_data_2d = np.load('data/mds-gender-2d.npy')
-    color = ['red', 'blue']
+    color = [RED, BLUE]
     label = ['male', 'female']
     for idx in range(2):
         plt.scatter(v_data_2d[idx*n_phone:(idx+1)*n_phone,0], v_data_2d[idx*n_phone:(idx+1)*n_phone,1], c=color[idx], label=label[idx])
     for idx, name in enumerate(phone_name):
-        plt.annotate(name, (v_data_2d[idx,0],v_data_2d[idx,1]))
-        plt.annotate(name, (v_data_2d[n_phone+idx,0],v_data_2d[n_phone+idx,1]))
-    plt.legend(loc='upper right', fontsize=6)
+        plt.annotate(name, (v_data_2d[idx,0],v_data_2d[idx,1]), fontsize=15)
+        plt.annotate(name, (v_data_2d[n_phone+idx,0],v_data_2d[n_phone+idx,1]), fontsize=15)
+    plt.legend(loc='upper right', ncol=2, fontsize=13, framealpha=0.9)
     plt.axis('off')
     # plt.title(f'Layer 1')
     plt.savefig('fig/gender.png', bbox_inches='tight', dpi=200)
@@ -40,15 +46,15 @@ def mds_gender(phone_name):
 def mds_pitch(phone_name):
     n_phone = len(phone_name)
     v_data_2d = np.load('data/mds-pitch-2d.npy')
-    color = ['red', 'blue', 'green']
+    color = [RED, BLUE, GREEN]
     label = ['<129.03Hz', '129.03-179.78Hz', '>179.78Hz']
     for idx in range(3):
         plt.scatter(v_data_2d[idx*n_phone:(idx+1)*n_phone,0], v_data_2d[idx*n_phone:(idx+1)*n_phone,1], c=color[idx], label=label[idx])
     for idx, name in enumerate(phone_name):
-        plt.annotate(name, (v_data_2d[idx,0],v_data_2d[idx,1]))
-        plt.annotate(name, (v_data_2d[n_phone+idx,0],v_data_2d[n_phone+idx,1]))
-        plt.annotate(name, (v_data_2d[n_phone*2+idx,0],v_data_2d[n_phone*2+idx,1]))
-    plt.legend(loc='upper right', fontsize=6)
+        plt.annotate(name, (v_data_2d[idx,0],v_data_2d[idx,1]), fontsize=15)
+        plt.annotate(name, (v_data_2d[n_phone+idx,0],v_data_2d[n_phone+idx,1]), fontsize=15)
+        plt.annotate(name, (v_data_2d[n_phone*2+idx,0],v_data_2d[n_phone*2+idx,1]), fontsize=15)
+    plt.legend(loc='upper right', ncol=2, fontsize=13, framealpha=0.9)
     plt.axis('off')
     # plt.title(f'Layer 1')
     plt.savefig('fig/pitch.png', bbox_inches='tight', dpi=200)
@@ -57,7 +63,7 @@ def mds_pitch(phone_name):
 def mds_duration(phone_name):
     n_phone = len(phone_name)
     v_data_2d = np.load('data/mds-duration-2d.npy')
-    color = ['red', 'blue', 'green']
+    color = [RED, BLUE, GREEN]
     label = ['<60ms', '60-100ms', '>100ms']
     for idx in range(3):
         plt.scatter(v_data_2d[idx*n_phone:(idx+1)*n_phone,0], v_data_2d[idx*n_phone:(idx+1)*n_phone,1], c=color[idx], label=label[idx])
@@ -65,7 +71,7 @@ def mds_duration(phone_name):
         plt.annotate(name, (v_data_2d[idx,0],v_data_2d[idx,1]))
         plt.annotate(name, (v_data_2d[n_phone+idx,0],v_data_2d[n_phone+idx,1]))
         plt.annotate(name, (v_data_2d[n_phone*2+idx,0],v_data_2d[n_phone*2+idx,1]))
-    plt.legend(loc='upper right', fontsize=6)
+    plt.legend(loc='upper right', ncol=2, fontsize=13, framealpha=0.9)
     plt.axis('off')
     # plt.title(f'Layer 6')
     plt.savefig('fig/duration.png', bbox_inches='tight', dpi=200)
@@ -81,9 +87,9 @@ def layer_compare():
     with open('data/layer_score.json', 'r') as fp:
         results = json.load(fp)
     color = {
-        'phone-type': 'C0',
-        'gender': 'C1',
-        'pitch': 'C2',
+        'phone-type': RED,
+        'gender': BLUE,
+        'pitch': GREEN,
         'duration': 'C3'
     }
     labels = {
@@ -201,7 +207,8 @@ def row_pruning_regular_n_ps_keys():
 def row_pruning_pr():
     methods = ['regular', 'protect-128', 'protect-all']
     per = {
-        'regular': [14.08, 9.89, 8.82, 8.92, 8.72, 8.17],
+        # 'regular': [14.08, 9.89, 8.82, 8.92, 8.72, 8.17],
+        'regular': [12.28, 8.40, 7.42, 7.23, 7.34, 8.17],
         'protect-128': [10.80, 8.99, 7.98, 7.42, 7.14, 8.17],
         'protect-all': [10.66, 8.17],
         # 'each-all': [10.95, 8.17],
@@ -286,11 +293,11 @@ def match_prob():
     n_dim = v_data.shape[-1]
     random_baseline = round(3072*0.01)/3072
     phone_name = ['AH']
-    plt.bar(range(n_dim), v_data[0])
+    plt.bar(range(n_dim), v_data[0], color=BLUE, linewidth=0)
     plt.xlabel('Neurons')
     plt.ylabel('Matching Probability (%)')
-    plt.axhline(y=random_baseline, color='r', linestyle='-', linewidth=1)
-    plt.text(x=2600, y=random_baseline+0.011, s='random baseline', color='r', ha='center', fontsize=12)
+    plt.axhline(y=random_baseline, color=RED, linestyle='-', linewidth=1)
+    plt.text(x=2600, y=random_baseline+0.011, s='random baseline', color=RED, ha='center', fontsize=15, fontweight='semibold')
     plt.savefig('fig/match_prob.png', bbox_inches='tight', dpi=200)
 
 def generate_colors(N):
@@ -314,12 +321,19 @@ def values_tsne():
 def task_specific_pr():
     methods = ['regular', 'proposed']
     per = {
-        'regular': [15.93, 11.52, 9.35, 8.08, 7.03, 6.17, 2.42],
-        'proposed': [12.04, 10.77, 8.74, 7.64, 6.93, 6.56, 2.42]
+        # 'regular': [15.93, 11.52, 9.35, 8.08, 7.03, 6.17, 2.42],
+        # 'proposed': [12.04, 10.77, 8.74, 7.64, 6.93, 6.56, 2.42]
+        'regular': [15.10, 11.11, 8.88, 7.62, 6.82, 6.54, 4.22, 3.32, 2.85, 2.66, 2.42],
+        # 'proposed': [13.24, 10.96, 8.67, 7.36, 6.62, 6.45, 4.14, 3.28, 2.84, 2.60, 2.42]
+        'proposed': [13.24, 10.96, 8.67, 7.36, 6.62, 6.45, 4.14, 3.28, 2.84, 2.60, 2.42]
     }
     rows = {
-        'regular': [28, 128, 228, 328, 428, 528, 3072],
-        'proposed': [77, 135, 228, 328, 428, 528, 3072],
+        # 'regular': [28, 128, 228, 328, 428, 528, 3072],
+        # 'proposed': [77, 135, 228, 328, 428, 528, 3072],
+        # 'regular': [12, 112, 212, 312, 412, 512, 1024, 1536, 2048, 2560, 3072],
+        # 'proposed': [32, 112, 212, 312, 412, 512, 1024, 1536, 2048, 2560, 3072],
+        'regular': [12, 112, 212, 312, 412, 512, 1024, 1536, 2048, 2560, 3072],
+        'proposed': [32, 112, 212, 312, 412, 512, 1024, 1536, 2048, 2560, 3072],
     }
     # Calculate density 
     D = 3072 
@@ -347,12 +361,20 @@ def task_specific_pr():
 def task_specific_sid():
     methods = ['regular', 'proposed']
     acc = {
-        'regular': [69.54, 81.99],
-        'proposed': [73.74, 81.99]
+        # 'regular': [69.54, 81.99],
+        # 'proposed': [73.74, 81.99]
+        # 'regular': [74.60, 74.34, 76.19, 75.50, 75.34, 72.40, 74.68, 77.33, 79.11, 80.64, 81.99],
+        # 'proposed': [75.36, 75.42, 76.08, 76.19, 75.36, 74.10, 76.70, 78.43, 80.07, 81.60, 81.99]
+        'regular': [72.40, 74.68, 77.33, 79.11, 80.64, 81.99],
+        'proposed': [74.10, 76.70, 78.43, 80.07, 81.60, 81.99]
     }
     rows = {
-        'regular': [169, 3072],
-        'proposed': [169, 3072]
+        # 'regular': [169, 3072],
+        # 'proposed': [169, 3072]
+        # 'regular': [12, 112, 212, 312, 412, 512, 1024, 1536, 2048, 2560, 3072],
+        # 'proposed': [23, 112, 212, 312, 412, 512, 1024, 1536, 2048, 2560, 3072]
+        'regular': [512, 1024, 1536, 2048, 2560, 3072],
+        'proposed': [512, 1024, 1536, 2048, 2560, 3072]
     }
     # Calculate density 
     D = 3072 
@@ -410,11 +432,29 @@ def task_specific_bar():
     ax2.set_ylabel('SID ERR (%)')
     # Legend
     plt.savefig('fig/task-specific-bar.png', bbox_inches='tight', dpi=200)
-    
+
+# def task_specific_layer_dim():
+#     # Data for the performance of methods
+#     PR = [161, 77, 61, 35, 45, 172, 237, 205, 106, 88, 156, 287]
+#     SID = [187, 142, 38, 18, 31, 49, 45, 66, 151, 415, 431, 458]
+    # Bar width
+    # bar_width = 0.18
+    # # Index for the bar locations for PR and SID
+    # index_PR = np.arange(len(methods)) * 0.3  
+    # index_SID = np.arange(len(methods)) * 0.3 + 0.15
+    # # Bar plots for PR
+    # plt.bar(index_PR, PR.values(), bar_width, label='PR', color='C0')
+
+    # ax1.set_xticks()
+    # ax1.set_xticklabels(['PR ' + m for m in methods] + ['SID ' + m for m in methods])  # Explicit labels for clarity
+    # # Legend
+    # plt.savefig('fig/task-specific-layer-dim.png', bbox_inches='tight', dpi=200)
+
 def task_specific_pruning():
     task_specific_pr()
     task_specific_sid()
-    task_specific_bar()
+    # task_specific_bar()
+    # task_specific_layer_dim()
 
 def ssl_pruning():
     row_pruning_pr()
