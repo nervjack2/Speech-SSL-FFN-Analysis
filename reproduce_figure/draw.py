@@ -387,19 +387,127 @@ def generate_colors(N):
     cmap = plt.get_cmap('gist_rainbow')
     return [cmap(1.*i/N) for i in range(N)]
 
-def values_tsne():
-    v_data_2d = np.load('data/values-8th-layer.npy')
-    n_cluster = 5
-    n_sample = 600
-    color = generate_colors(n_cluster)
-    sum_ = 0
-    for idx in range(n_cluster):
-        cluster_emb = v_data_2d[sum_:sum_+n_sample,:]
-        plt.scatter(cluster_emb[:,0], cluster_emb[:,1], color=color[idx], label='Cluster '+str(idx))
-        sum_ += n_sample
-    plt.axis('off')
-    plt.title(f'Layer 8')
-    plt.savefig('fig/values-tsne.png', bbox_inches='tight', dpi=200)
+# def values_tsne():
+#     v_data_2d = np.load('data/values-8th-layer.npy')
+#     n_cluster = 5
+#     n_sample = 600
+#     color = generate_colors(n_cluster)
+#     sum_ = 0
+#     for idx in range(n_cluster):
+#         cluster_emb = v_data_2d[sum_:sum_+n_sample,:]
+#         plt.scatter(cluster_emb[:,0], cluster_emb[:,1], color=color[idx], label='Cluster '+str(idx))
+#         sum_ += n_sample
+#     plt.axis('off')
+#     plt.title(f'Layer 8')
+#     plt.savefig('fig/values-tsne.png', bbox_inches='tight', dpi=200)
+
+def task_specific_pr():
+    methods = ['regular', 'proposed']
+    per = {
+        # 'regular': [15.93, 11.52, 9.35, 8.08, 7.03, 6.17, 2.42],
+        # 'proposed': [12.04, 10.77, 8.74, 7.64, 6.93, 6.56, 2.42]
+        'regular': [15.10, 11.11, 8.88, 7.62, 6.82, 6.54, 4.22, 3.32, 2.85, 2.66, 2.42],
+        'proposed': [13.24, 10.96, 8.67, 7.36, 6.62, 6.45, 4.14, 3.28, 2.84, 2.60, 2.42]
+    }
+    rows = {
+        # 'regular': [28, 128, 228, 328, 428, 528, 3072],
+        # 'proposed': [77, 135, 228, 328, 428, 528, 3072],
+        'regular': [12, 112, 212, 312, 412, 512, 1024, 1536, 2048, 2560, 3072],
+        'proposed': [32, 112, 212, 312, 412, 512, 1024, 1536, 2048, 2560, 3072],
+    }
+    # Calculate density 
+    D = 3072 
+    density = {}
+    for k, v in rows.items():
+        density[k] = [i/D for i in v]
+    colors = {
+        'regular': 'C0',
+        'proposed': 'C1',
+    }
+    labels = {
+        'regular': 'regular',
+        'proposed': 'proposed',
+    }
+    for m in methods:
+        plt.plot(density[m], per[m], label=labels[m], color=colors[m], marker='o')
+    plt.legend()
+    plt.axhline(per['regular'][-1], linestyle='--', color='black')
+    plt.ylim(2, 16)
+    plt.xlabel('Density')
+    plt.ylabel('PER(%)')
+    plt.savefig('fig/task-specific-pr.png', bbox_inches='tight', dpi=200)
+    plt.clf()
+
+def task_specific_sid():
+    methods = ['regular', 'proposed']
+    acc = {
+        # 'regular': [69.54, 81.99],
+        # 'proposed': [73.74, 81.99],
+        'regular': [72.40, 74.68, 77.33, 79.11, 80.64, 81.99],
+        'proposed': [74.10, 76.70, 78.43, 80.07, 81.60, 81.99]
+    }
+    rows = {
+        # 'regular': [169, 3072],
+        # 'proposed': [169, 3072],
+        'regular': [512, 1024, 1536, 2048, 2560, 3072],
+        'proposed': [512, 1024, 1536, 2048, 2560, 3072]
+    }
+    # Calculate density 
+    D = 3072 
+    density = {}
+    for k, v in rows.items():
+        density[k] = [i/D for i in v]
+    colors = {
+        'regular': 'C0',
+        'proposed': 'C1',
+    }
+    labels = {
+        'regular': 'regular',
+        'proposed': 'proposed',
+    }
+    for m in methods:
+        plt.plot(density[m], [100-i for i in acc[m]], label=labels[m], color=colors[m], marker='o')
+    plt.legend()
+    plt.axhline(100-acc['regular'][-1], linestyle='--', color='black')
+    plt.ylim(17, 32)
+    plt.xlabel('Density')
+    plt.ylabel('ERR(%)')
+    plt.savefig('fig/task-specific-sid.png', bbox_inches='tight', dpi=200)
+    plt.clf()
+
+def task_specific_bar():
+    # Data for the performance of methods
+    PR = {
+        'topline': 2.42,
+        'proposed': 10.77,
+        'baseline': 11.52
+    }
+    SID = {
+        'topline': 81.99,
+        'proposed': 73.74,
+        'baseline': 69.54
+    }
+    # Convert SID accuracy to error rate
+    SID_error = {k: 100 - v for k, v in SID.items()}
+    methods = list(PR.keys())
+    # Plotting
+    fig, ax1 = plt.subplots(figsize=(8, 6))
+    # Bar width
+    bar_width = 0.18
+    # Index for the bar locations for PR and SID
+    index_PR = np.arange(len(methods)) * 0.3  
+    index_SID = np.arange(len(methods)) * 0.3 + max(index_PR) + 0.5
+    # Bar plots for PR
+    bars_PR = ax1.bar(index_PR, PR.values(), bar_width, label='PR', color='C0')
+    ax1.set_ylabel('PER (%)')
+    ax1.set_xticks(np.concatenate([index_PR, index_SID]))
+    ax1.set_xticklabels(['PR ' + m for m in methods] + ['SID ' + m for m in methods])  # Explicit labels for clarity
+    # Create a second y-axis for SID error rates
+    ax2 = ax1.twinx()
+    bars_SID = ax2.bar(index_SID, SID_error.values(), bar_width, label='SID Error Rate', color='C1')
+    ax2.set_ylabel('SID ERR (%)')
+    # Legend
+    plt.savefig('fig/task-specific-bar.png', bbox_inches='tight', dpi=200)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -408,7 +516,7 @@ if __name__ == '__main__':
                 'model_compare', 'layer_n_ps_compare',
                 'venn_ps_keys', 'row_pruning_regular_n_ps_keys',
                 'row_pruning_pr', 'row_pruning_sid', 'match_prob',
-                'values_tsne']
+                'task_specific_pr', 'task_specific_sid', 'task_specific_bar']
             ,help='Mode of drawing figure')
     args = parser.parse_args()
     eval(args.mode)()
