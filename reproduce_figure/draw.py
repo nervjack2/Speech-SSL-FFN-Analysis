@@ -5,10 +5,11 @@ import seaborn as sns
 import matplotlib.pyplot as plt 
 from matplotlib_venn import venn3
 
-
 sns.set()
 
 RED = '#FF5555'
+RED2 = '#FF7E7E'
+RED3 = '#FFB5B5'
 BLUE = '#2662FF'
 GREEN = '#1BEB40'
 YELLOW = '#F0F71D'
@@ -24,7 +25,7 @@ def mds_phoneme(phone_name):
         acc += n 
     for idx, name in enumerate(phone_name):
         plt.annotate(name, (v_data_2d[idx,0],v_data_2d[idx,1]), fontsize=15)
-    plt.legend(loc='upper right', fontsize=13, ncol=2, framealpha=0.9, columnspacing=0.0)
+    plt.legend(loc='upper right', fontsize=13, ncol=1, framealpha=0.8, columnspacing=0.0)
     plt.axis('off')
     # plt.title(f'Layer 8')
     plt.savefig('fig/phone.png', bbox_inches='tight', dpi=200)
@@ -40,7 +41,7 @@ def mds_gender(phone_name):
     for idx, name in enumerate(phone_name):
         plt.annotate(name, (v_data_2d[idx,0],v_data_2d[idx,1]), fontsize=15)
         plt.annotate(name, (v_data_2d[n_phone+idx,0],v_data_2d[n_phone+idx,1]), fontsize=15)
-    plt.legend(loc='upper right', fontsize=13, ncol=2, framealpha=0.9)
+    plt.legend(loc='upper right', fontsize=13, ncol=2, framealpha=0.8, columnspacing=0.0)
     plt.axis('off')
     # plt.title(f'Layer 1')
     plt.savefig('fig/gender.png', bbox_inches='tight', dpi=200)
@@ -57,7 +58,7 @@ def mds_pitch(phone_name):
         plt.annotate(name, (v_data_2d[idx,0],v_data_2d[idx,1]), fontsize=15)
         plt.annotate(name, (v_data_2d[n_phone+idx,0],v_data_2d[n_phone+idx,1]), fontsize=15)
         plt.annotate(name, (v_data_2d[n_phone*2+idx,0],v_data_2d[n_phone*2+idx,1]), fontsize=15)
-    plt.legend(loc='upper right', fontsize=13, ncol=2, framealpha=0.9)
+    plt.legend(loc='upper right', fontsize=13, ncol=2, framealpha=0.8, columnspacing=0.0)
     plt.axis('off')
     # plt.title(f'Layer 1')
     plt.savefig('fig/pitch.png', bbox_inches='tight', dpi=200)
@@ -74,7 +75,7 @@ def mds_duration(phone_name):
         plt.annotate(name, (v_data_2d[idx,0],v_data_2d[idx,1]), fontsize=15)
         plt.annotate(name, (v_data_2d[n_phone+idx,0],v_data_2d[n_phone+idx,1]), fontsize=15)
         plt.annotate(name, (v_data_2d[n_phone*2+idx,0],v_data_2d[n_phone*2+idx,1]), fontsize=15)
-    plt.legend(loc='upper right', fontsize=13, ncol=2, framealpha=0.9)
+    plt.legend(loc='upper right', fontsize=13, ncol=2, framealpha=0.8, columnspacing=0.0)
     plt.axis('off')
     # plt.title(f'Layer 6')
     plt.savefig('fig/duration.png', bbox_inches='tight', dpi=200)
@@ -102,6 +103,8 @@ def layer_compare():
         'duration': 'duration' 
     }
     for k, v in results.items():
+        if k == 'duration':
+            continue
         plt.plot(range(1,13), v, label=labels[k], c=color[k], marker='o')
     plt.xticks(ticks=range(1,13))
     plt.xlabel('Layer')
@@ -110,7 +113,7 @@ def layer_compare():
     plt.savefig('fig/layer-compare.png', bbox_inches='tight', dpi=200)
 
 def model_compare():
-    models_list = ['melhubert_base', 'hubert_base', 'wav2vec2_base', 'wavlm_base']
+    models_list = ['hubert_base', 'wav2vec2_base', 'wavlm_base', 'melhubert_base', 'pr', 'sid']
     properties = ['phone-type', 'gender', 'pitch']
     with open('data/model_score.json', 'r') as fp:
         model_score = json.load(fp)
@@ -118,16 +121,20 @@ def model_compare():
         'melhubert_base': RED,
         'hubert_base': BLUE,
         'wav2vec2_base': GREEN,
-        'wavlm_base': YELLOW
+        'wavlm_base': YELLOW,
+        'pr': RED2,
+        'sid': RED3,
     }
     label = {
         'melhubert_base': 'MelHuBERT',
         'hubert_base': 'HuBERT',
         'wav2vec2_base': 'Wav2vec 2.0',
-        'wavlm_base': 'WavLM'
+        'wavlm_base': 'WavLM',
+        'pr': 'MelHuBERT-PR',
+        'sid': 'MelHuBERT-SID',
     }
     x = np.arange(3)  # the label locations
-    width = 0.08  # the width of the bars
+    width = 0.06  # the width of the bars
     multiplier = 0
     fig, ax = plt.subplots(layout='constrained', figsize=(5,4))
     for m in models_list:
