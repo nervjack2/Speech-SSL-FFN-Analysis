@@ -151,10 +151,10 @@ def layer_n_ps_compare():
     with open('data/layer_n_ps_keys.json', 'r') as fp:
         layer_n_ps_keys = json.load(fp)
     color = {
-        'phone-type': 'red',
-        'gender': 'blue',
-        'pitch': 'green',
-        'duration': 'black'
+        'phone-type': RED,
+        'gender': BLUE,
+        'pitch': GREEN,
+        'duration': YELLOW
     }
     label = {
         'phone-type': 'phoneme',
@@ -163,10 +163,12 @@ def layer_n_ps_compare():
         'duration': 'duration'
     }
     for k, v in layer_n_ps_keys.items():
+        if k == 'duration':
+            continue
         plt.plot(range(1, 12+1), v, label=label[k], color=color[k], marker='o')
     plt.legend()
     plt.xlabel('Layer')
-    plt.ylabel('Num. property-specific keys')
+    plt.ylabel('Num. property neurons')
     plt.savefig('fig/layer-n-compare.png', bbox_inches='tight', dpi=200)
 
 def venn_ps_keys():
@@ -295,17 +297,20 @@ def row_pruning_regular_n_ps_keys():
     plt.savefig('fig/row-pruning-regular-n-ps-keys.png', bbox_inches='tight', dpi=200)
 
 def row_pruning_pr():
-    # methods = ['regular', 'proposed-128', 'proposed-all']
-    methods = ['regular', 'proposed-all']
+    methods = ['regular-all', 'proposed-all']
     per = {
-        'regular': [14.08, 9.89, 8.82, 8.92, 8.72, 8.17],
-        'proposed-128': [],
-        'proposed-all': [10.48, 8.17]
+        'regular-128': [12.28, 8.40, 7.42, 7.23, 7.34, 8.17],
+        'regular-all': [12.03, 8.17],
+        'protect-128': [10.80, 8.99, 7.98, 7.42, 7.14, 8.17],
+        'protect-all': [10.66, 8.17],
+        'each-all': [10.95, 8.17],
     }
     rows = {
-        'regular': [512, 1024, 1536, 2048, 2560, 3072],
-        'proposed-128': [512, 1024, 1536, 2048, 2560, 3072],
-        'proposed-all': [598, 3072]
+        'regular-128': [512, 1024, 1536, 2048, 2560, 3072],
+        'regular-all': [577, 3072],
+        'protect-128': [512, 1024, 1536, 2048, 2560, 3072],
+        'protect-all': [577, 3072],
+        'each-all': [434, 3072],
     }
     # Calculate density 
     D = 3072 
@@ -314,14 +319,12 @@ def row_pruning_pr():
         density[k] = [i/D for i in v]
 
     colors = {
-        'regular': 'red',
-        'proposed-128': 'blue',
-        'proposed-all': 'green'
+        'regular-all': RED,
+        'protect-all': BLUE,
     }
     labels = {
         'regular': 'regular',
-        'proposed-128': 'proposed-128',
-        'proposed-all': 'porposed-all'
+        'protect-all': 'protect'
     }
 
     for m in methods:
@@ -334,17 +337,20 @@ def row_pruning_pr():
     plt.savefig('fig/row-pruning-pr.png', bbox_inches='tight', dpi=200)
 
 def row_pruning_sid():
-    # methods = ['regular', 'proposed-128', 'proposed-all']
-    methods = ['regular', 'proposed-all']
+    methods = ['regular-all', 'proposed-all']
     acc = {
-        'regular': [51.04, 54.93, 59.77, 60.35, 62.63, 63.96],
-        'proposed-128': [],
-        'proposed-all': [58.24, 63.96]
+        'regular-128': [51.04, 54.93, 59.77, 60.35, 62.63, 63.96],
+        'regular-all': [50.84, 63.96],
+        'protect-128': [54.10, 55.41, 59.21, 60.98, 62.71, 63.96],
+        'protect-all': [58.89, 63.96],
+        'each-all': [59.37, 63.96],
     }
     rows = {
-        'regular': [512, 1024, 1536, 2048, 2560, 3072],
-        'proposed-128': [512, 1024, 1536, 2048, 2560, 3072],
-        'proposed-all': [598, 3072]
+        'regular-128': [512, 1024, 1536, 2048, 2560, 3072],
+        'regular-all': [577, 3072],
+        'protect-128': [512, 1024, 1536, 2048, 2560, 3072],
+        'protect-all': [577, 3072],
+        'each-all': [434, 3072],
     }
     # Calculate density 
     D = 3072 
@@ -352,14 +358,12 @@ def row_pruning_sid():
     for k, v in rows.items():
         density[k] = [i/D for i in v]
     colors = {
-        'regular': 'red',
-        'proposed-128': 'blue',
-        'proposed-all': 'green'
+        'regular-all': RED,
+        'protect-all': BLUE,
     }
     labels = {
         'regular': 'regular',
-        'proposed-128': 'proposed-128',
-        'proposed-all': 'porposed-all'
+        'protect-all': 'protect'
     }
     for m in methods:
         plt.plot(density[m], [100-i for i in acc[m]], label=labels[m], color=colors[m], marker='o')
@@ -369,6 +373,44 @@ def row_pruning_sid():
     plt.xlabel('Density')
     plt.ylabel('ERR(%)')
     plt.savefig('fig/row-pruning-sid.png', bbox_inches='tight', dpi=200)
+
+def row_pruning_bar():
+    PR = {
+        'topline': 2.42,
+        'proposed': 10.77,
+        'baseline': 11.52
+    }
+    SID = {
+        'topline': 81.99,
+        'proposed': 73.74,
+        'baseline': 69.54
+    }
+    # Convert SID accuracy to error rate
+    SID_error = {k: 100 - v for k, v in SID.items()}
+    methods = list(PR.keys())
+    # Plotting
+    fig, ax1 = plt.subplots(figsize=(8, 6))
+    # Bar width
+    bar_width = 0.18
+    # Index for the bar locations for PR and SID
+    index_PR = np.arange(len(methods)) * 0.3  
+    index_SID = np.arange(len(methods)) * 0.3 + max(index_PR) + 0.5
+    # Bar plots for PR
+    bars_PR = ax1.bar(index_PR, PR.values(), bar_width, label='PR', color='C0')
+    ax1.set_ylabel('PER (%)')
+    ax1.set_xticks(np.concatenate([index_PR, index_SID]))
+    ax1.set_xticklabels(['PR ' + m for m in methods] + ['SID ' + m for m in methods])  # Explicit labels for clarity
+    # Create a second y-axis for SID error rates
+    ax2 = ax1.twinx()
+    bars_SID = ax2.bar(index_SID, SID_error.values(), bar_width, label='SID Error Rate', color='C1')
+    ax2.set_ylabel('SID ERR (%)')
+    # Legend
+    plt.savefig('fig/task-specific-bar.png', bbox_inches='tight', dpi=200)
+
+def ssl_pruning():
+    row_pruning_pr()
+    row_pruning_sid()
+    row_pruning_bar()
 
 def match_prob():
     v_data = np.load('data/match_prob.npy')
@@ -477,13 +519,13 @@ def task_specific_sid():
 
 def task_specific_bar():
     # Data for the performance of methods
-    PR = {
-        'topline': 2.42,
+    PR = { # about 135 rows remained
+        'unpruned': 2.42,
         'proposed': 10.77,
         'baseline': 11.52
     }
-    SID = {
-        'topline': 81.99,
+    SID = { # about 169 rows remained
+        'unpruned': 81.99,
         'proposed': 73.74,
         'baseline': 69.54
     }
@@ -491,23 +533,30 @@ def task_specific_bar():
     SID_error = {k: 100 - v for k, v in SID.items()}
     methods = list(PR.keys())
     # Plotting
-    fig, ax1 = plt.subplots(figsize=(8, 6))
+    fig, ax1 = plt.subplots(figsize=(10, 6))
     # Bar width
     bar_width = 0.18
     # Index for the bar locations for PR and SID
     index_PR = np.arange(len(methods)) * 0.3  
-    index_SID = np.arange(len(methods)) * 0.3 + max(index_PR) + 0.5
+    index_SID = np.arange(len(methods)) * 0.3 + max(index_PR) + 0.4
     # Bar plots for PR
     bars_PR = ax1.bar(index_PR, PR.values(), bar_width, label='PR', color='C0')
     ax1.set_ylabel('PER (%)')
     ax1.set_xticks(np.concatenate([index_PR, index_SID]))
-    ax1.set_xticklabels(['PR ' + m for m in methods] + ['SID ' + m for m in methods])  # Explicit labels for clarity
+    ax1.set_xticklabels([f'PR {methods[0]}']+[m for m in methods[1:]] + [f'SID {methods[0]}'] + [m for m in methods[1:]], fontsize=14)  # Explicit labels for clarity
+    ax1.grid(zorder=0)
     # Create a second y-axis for SID error rates
     ax2 = ax1.twinx()
     bars_SID = ax2.bar(index_SID, SID_error.values(), bar_width, label='SID Error Rate', color='C1')
     ax2.set_ylabel('SID ERR (%)')
+    ax2.grid(visible=False)
     # Legend
     plt.savefig('fig/task-specific-bar.png', bbox_inches='tight', dpi=200)
+
+def task_specific_pruning():
+    task_specific_pr()
+    task_specific_sid()
+    task_specific_bar()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -516,7 +565,7 @@ if __name__ == '__main__':
                 'model_compare', 'layer_n_ps_compare',
                 'venn_ps_keys', 'row_pruning_regular_n_ps_keys',
                 'row_pruning_pr', 'row_pruning_sid', 'match_prob',
-                'task_specific_pr', 'task_specific_sid', 'task_specific_bar']
+                'task_specific_pruning']
             ,help='Mode of drawing figure')
     args = parser.parse_args()
     eval(args.mode)()
