@@ -91,10 +91,10 @@ def layer_compare():
     with open('data/layer_score.json', 'r') as fp:
         results = json.load(fp)
     color = {
-        'phone-type': RED,
-        'gender': BLUE,
-        'pitch': GREEN,
-        'duration': YELLOW
+        'phone-type': 'C0',
+        'gender': 'C1',
+        'pitch': 'C2',
+        'duration': 'C3'
     }
     labels = {
         'phone-type': 'phoneme',
@@ -102,6 +102,7 @@ def layer_compare():
         'pitch': 'pitch',
         'duration': 'duration' 
     }
+    plt.figure(figsize=(6,4))
     for k, v in results.items():
         if k == 'duration':
             continue
@@ -119,9 +120,9 @@ def model_compare():
         model_score = json.load(fp)
     color = {
         'melhubert_base': RED,
-        'hubert_base': BLUE,
-        'wav2vec2_base': GREEN,
-        'wavlm_base': YELLOW,
+        'hubert_base': 'C0',
+        'wav2vec2_base': 'C1',
+        'wavlm_base': 'C2',
         'pr': RED2,
         'sid': RED3,
     }
@@ -136,14 +137,14 @@ def model_compare():
     x = np.arange(3)  # the label locations
     width = 0.06  # the width of the bars
     multiplier = 0
-    fig, ax = plt.subplots(layout='constrained', figsize=(5,4))
+    fig, ax = plt.subplots(layout='constrained', figsize=(6,3))
     for m in models_list:
         offset = width * multiplier
         ax.bar(x*0.5 + offset, model_score[m], width, label=label[m], color=color[m])
         multiplier += 1
     xticks = ['phoneme', 'gender', 'pitch']
-    ax.set_ylabel('Silhouette score')
-    ax.set_xticks(x*0.5 + width*1.5, xticks)
+    ax.set_ylabel('Silhouette score', fontsize=15)
+    ax.set_xticks(x*0.5 + width*2.5, xticks, fontsize=13)
     ax.legend(loc='upper left')
     plt.savefig('fig/models-compare.png', dpi=200, bbox_inches='tight')
 
@@ -151,10 +152,10 @@ def layer_n_ps_compare():
     with open('data/layer_n_ps_keys.json', 'r') as fp:
         layer_n_ps_keys = json.load(fp)
     color = {
-        'phone-type': RED,
-        'gender': BLUE,
-        'pitch': GREEN,
-        'duration': YELLOW
+        'phone-type': 'C0',
+        'gender': 'C1',
+        'pitch': 'C2',
+        'duration': 'C3'
     }
     label = {
         'phone-type': 'phoneme',
@@ -162,6 +163,7 @@ def layer_n_ps_compare():
         'pitch': 'pitch',
         'duration': 'duration'
     }
+    plt.figure(figsize=(6,4))
     for k, v in layer_n_ps_keys.items():
         if k == 'duration':
             continue
@@ -176,6 +178,9 @@ def venn_ps_keys():
     with open('data/venn_set_sizes_layer_1.json', 'r') as fp:
         set_sizes = json.load(fp)
     venn = venn3(subsets=set_sizes, set_labels=p_name)
+    venn.get_patch_by_id('100').set_color('C0')  
+    venn.get_patch_by_id('010').set_color('C1')
+    venn.get_patch_by_id('001').set_color('C2') 
     plt.savefig('fig/venn-ps-keys-layer-1.png', bbox_inches='tight', dpi=200)
 
 # def row_pruning_cmp_n_ps_keys():
@@ -297,7 +302,7 @@ def row_pruning_regular_n_ps_keys():
     plt.savefig('fig/row-pruning-regular-n-ps-keys.png', bbox_inches='tight', dpi=200)
 
 def row_pruning_pr():
-    methods = ['regular-all', 'proposed-all']
+    methods = ['regular-all', 'protect-all']
     per = {
         'regular-128': [12.28, 8.40, 7.42, 7.23, 7.34, 8.17],
         'regular-all': [12.03, 8.17],
@@ -323,21 +328,21 @@ def row_pruning_pr():
         'protect-all': BLUE,
     }
     labels = {
-        'regular': 'regular',
+        'regular-all': 'regular',
         'protect-all': 'protect'
     }
 
     for m in methods:
         plt.plot(density[m], per[m], label=labels[m], color=colors[m], marker='o')
     plt.legend()
-    plt.axhline(per['regular'][-1], linestyle='--', color='black')
+    plt.axhline(per['regular-all'][-1], linestyle='--', color='black')
     plt.ylim(7, 22)
     plt.xlabel('Density')
     plt.ylabel('PER(%)')
     plt.savefig('fig/row-pruning-pr.png', bbox_inches='tight', dpi=200)
 
 def row_pruning_sid():
-    methods = ['regular-all', 'proposed-all']
+    methods = ['regular-all', 'protect-all']
     acc = {
         'regular-128': [51.04, 54.93, 59.77, 60.35, 62.63, 63.96],
         'regular-all': [50.84, 63.96],
@@ -362,13 +367,13 @@ def row_pruning_sid():
         'protect-all': BLUE,
     }
     labels = {
-        'regular': 'regular',
+        'regular-all': 'regular',
         'protect-all': 'protect'
     }
     for m in methods:
         plt.plot(density[m], [100-i for i in acc[m]], label=labels[m], color=colors[m], marker='o')
     plt.legend()
-    plt.axhline(100-acc['regular'][-1], linestyle='--', color='black')
+    plt.axhline(100-acc['regular-all'][-1], linestyle='--', color='black')
     plt.ylim(35, 50)
     plt.xlabel('Density')
     plt.ylabel('ERR(%)')
@@ -376,36 +381,50 @@ def row_pruning_sid():
 
 def row_pruning_bar():
     PR = {
-        'topline': 2.42,
-        'proposed': 10.77,
-        'baseline': 11.52
+        'unpruned': 8.17,
+        'protect ': 10.66,
+        'baseline': 12.03,
     }
     SID = {
-        'topline': 81.99,
-        'proposed': 73.74,
-        'baseline': 69.54
+        'unpruned': 63.96,
+        'protect': 58.89,
+        'baseline': 50.84,
     }
+
     # Convert SID accuracy to error rate
     SID_error = {k: 100 - v for k, v in SID.items()}
     methods = list(PR.keys())
     # Plotting
-    fig, ax1 = plt.subplots(figsize=(8, 6))
+    fig, ax1 = plt.subplots(figsize=(10, 6))
     # Bar width
     bar_width = 0.18
     # Index for the bar locations for PR and SID
     index_PR = np.arange(len(methods)) * 0.3  
-    index_SID = np.arange(len(methods)) * 0.3 + max(index_PR) + 0.5
+    index_SID = np.arange(len(methods)) * 0.3 + max(index_PR) + 0.4
     # Bar plots for PR
     bars_PR = ax1.bar(index_PR, PR.values(), bar_width, label='PR', color='C0')
     ax1.set_ylabel('PER (%)')
     ax1.set_xticks(np.concatenate([index_PR, index_SID]))
-    ax1.set_xticklabels(['PR ' + m for m in methods] + ['SID ' + m for m in methods])  # Explicit labels for clarity
+    ax1.set_xticklabels(methods + methods, fontsize=14)  # Explicit labels for clarity
+    ax1.legend(fontsize=15, loc='upper left', framealpha=0.8)
     # Create a second y-axis for SID error rates
     ax2 = ax1.twinx()
-    bars_SID = ax2.bar(index_SID, SID_error.values(), bar_width, label='SID Error Rate', color='C1')
+    bars_SID = ax2.bar(index_SID, SID_error.values(), bar_width, label='SID', color='C1')
     ax2.set_ylabel('SID ERR (%)')
-    # Legend
-    plt.savefig('fig/task-specific-bar.png', bbox_inches='tight', dpi=200)
+    ax2.grid(visible=False)
+    ax2.legend(fontsize=15, loc='upper left', bbox_to_anchor=(0,0.9), framealpha=0.8)
+    # Function to attach a text label above each bar displaying its height
+    def autolabel(rects, ax):
+        for rect in rects:
+            height = round(rect.get_height(), 1)
+            ax.annotate('{}'.format(height),
+                        xy=(rect.get_x() + rect.get_width() / 2, height),
+                        xytext=(0, 3),  # 3 points vertical offset
+                        textcoords="offset points",
+                        ha='center', va='bottom')
+    autolabel(bars_PR, ax1)
+    autolabel(bars_SID, ax2)
+    plt.savefig('fig/pruning-bar.png', bbox_inches='tight', dpi=200)
 
 def ssl_pruning():
     row_pruning_pr()
@@ -415,14 +434,11 @@ def ssl_pruning():
 def match_prob():
     v_data = np.load('data/match_prob.npy')
     n_dim = v_data.shape[-1]
-    n_phone = 3
     random_baseline = round(3072*0.01)/3072
-    phone_name = ['AH', 'F', 'UH']
-    fig, axs = plt.subplots(1, n_phone, figsize=(10,4))
-    for i in range(n_phone):
-        axs[i].bar(range(n_dim), v_data[i])
-        axs[i].title.set_text(phone_name[i])
-        axs[i].axhline(y=random_baseline, color='r', linestyle='-', linewidth=1)
+    plt.figure(figsize=(6,4))
+    plt.bar(range(n_dim), v_data[0], color='C0', linewidth=0)
+    plt.axhline(y=random_baseline, color=RED, linestyle='-', linewidth=2)
+    plt.text(n_dim*0.7, random_baseline+0.02, 'random baseline', color=RED, fontweight='bold')
     plt.savefig('fig/match_prob.png', bbox_inches='tight', dpi=200)
 
 def generate_colors(N):
@@ -543,20 +559,68 @@ def task_specific_bar():
     bars_PR = ax1.bar(index_PR, PR.values(), bar_width, label='PR', color='C0')
     ax1.set_ylabel('PER (%)')
     ax1.set_xticks(np.concatenate([index_PR, index_SID]))
-    ax1.set_xticklabels([f'PR {methods[0]}']+[m for m in methods[1:]] + [f'SID {methods[0]}'] + [m for m in methods[1:]], fontsize=14)  # Explicit labels for clarity
+    ax1.set_xticklabels(methods + methods, fontsize=14)  # Explicit labels for clarity
     ax1.grid(zorder=0)
+    ax1.legend(fontsize=15, loc='upper left', framealpha=0.8)
     # Create a second y-axis for SID error rates
     ax2 = ax1.twinx()
-    bars_SID = ax2.bar(index_SID, SID_error.values(), bar_width, label='SID Error Rate', color='C1')
+    bars_SID = ax2.bar(index_SID, SID_error.values(), bar_width, label='SID', color='C1')
     ax2.set_ylabel('SID ERR (%)')
     ax2.grid(visible=False)
-    # Legend
+    ax2.legend(fontsize=15, loc='upper left', bbox_to_anchor=(0,0.9), framealpha=0.8)
+    # Function to attach a text label above each bar displaying its height
+    def autolabel(rects, ax):
+        for rect in rects:
+            height = round(rect.get_height(), 1)
+            ax.annotate('{}'.format(height),
+                        xy=(rect.get_x() + rect.get_width() / 2, height),
+                        xytext=(0, 3),  # 3 points vertical offset
+                        textcoords="offset points",
+                        ha='center', va='bottom')
+    autolabel(bars_PR, ax1)
+    autolabel(bars_SID, ax2)
     plt.savefig('fig/task-specific-bar.png', bbox_inches='tight', dpi=200)
 
 def task_specific_pruning():
     task_specific_pr()
     task_specific_sid()
     task_specific_bar()
+
+def erase_gender_info():
+    # Data setup
+    groups = ['Erase Male', 'Erase Female']
+    male_delta_errors = [18.58, 2.24]
+    female_delta_errors = [4.1, 22.43]
+
+    # Set up for bars
+    y = [i*0.45 for i in range(len(groups))]  # label locations
+    height = 0.18  # height of the bars
+
+    fig, ax = plt.subplots(figsize=(8, 4))
+    rects1 = ax.barh([p - height for p in y], male_delta_errors, height, label='Male', color='C0')
+    rects2 = ax.barh(y, female_delta_errors, height, label='Female', color='C1')
+
+    # Add some text for labels, title and custom y-axis tick labels, etc.
+    ax.set_xlabel('Δ SID Error Rate (%)', fontsize=15)
+    ax.set_yticks([p  - height/2 for p in y])
+    ax.set_yticklabels(groups, fontsize=15)
+    ax.legend(fontsize=15)
+
+    # Function to attach a text label next to each bar displaying its width
+    def autolabel(rects):
+        for rect in rects:
+            width = rect.get_width()
+            ax.annotate('{}'.format(width),
+                        xy=(width, rect.get_y() + rect.get_height() / 2),
+                        xytext=(3, 0),  # 3 points horizontal offset
+                        textcoords="offset points",
+                        ha='left', va='center')
+
+    # Attach labels to the bars
+    autolabel(rects1)
+    autolabel(rects2)
+    plt.savefig('fig/erase-gender.png', bbox_inches='tight', dpi=200)
+   
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -565,7 +629,7 @@ if __name__ == '__main__':
                 'model_compare', 'layer_n_ps_compare',
                 'venn_ps_keys', 'row_pruning_regular_n_ps_keys',
                 'row_pruning_pr', 'row_pruning_sid', 'match_prob',
-                'task_specific_pruning']
+                'task_specific_pruning', 'ssl_pruning', 'erase_gender_info']
             ,help='Mode of drawing figure')
     args = parser.parse_args()
     eval(args.mode)()
