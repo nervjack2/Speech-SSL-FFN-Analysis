@@ -621,6 +621,43 @@ def erase_gender_info():
     autolabel(rects2)
     plt.savefig('fig/erase-gender.png', bbox_inches='tight', dpi=200)
    
+def erase_phone_type():
+    # Data setup
+    groups = ['Erase Vowels', 'Erase Voiced-Con.', 'Erase Unvoiced-Con.']
+    vowels_delta_errors = [0.88, 0.05, 0.00]
+    voiced_con_delta_errors = [-0.08, 0.25, -0.02]
+    unvoiced_con_delta_errors = [-0.24, 0.04, 0.54]
+
+    # Set up for bars
+    y = [i*0.60 for i in range(len(groups))]  # label locations
+    height = 0.18  # height of the bars
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+    rects1 = ax.barh([p - height*2 for p in y], vowels_delta_errors, height, label='Vowels', color='C0')
+    rects2 = ax.barh([p - height for p in y], voiced_con_delta_errors, height, label='Voiced-Con.', color='C1')
+    rects3 = ax.barh(y, unvoiced_con_delta_errors, height, label='Unvoiced-Con.', color='C2')
+
+    # Add some text for labels, title and custom y-axis tick labels, etc.
+    ax.set_xlabel('Δ Phoneme CLS Error Rate (%)', fontsize=15)
+    ax.set_yticks([p  - height/2 for p in y])
+    ax.set_yticklabels(groups, fontsize=15)
+    ax.legend(fontsize=15)
+
+    # Function to attach a text label next to each bar displaying its width
+    def autolabel(rects):
+        for rect in rects:
+            width = rect.get_width()
+            ax.annotate('{}'.format(width),
+                        xy=(width, rect.get_y() + rect.get_height() / 2),
+                        xytext=(3, 0),  # 3 points horizontal offset
+                        textcoords="offset points",
+                        ha='left', va='center')
+
+    # Attach labels to the bars
+    autolabel(rects1)
+    autolabel(rects2)
+    plt.savefig('fig/erase-phoneme-type.png', bbox_inches='tight', dpi=200)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -629,7 +666,7 @@ if __name__ == '__main__':
                 'model_compare', 'layer_n_ps_compare',
                 'venn_ps_keys', 'row_pruning_regular_n_ps_keys',
                 'row_pruning_pr', 'row_pruning_sid', 'match_prob',
-                'task_specific_pruning', 'ssl_pruning', 'erase_gender_info']
+                'task_specific_pruning', 'ssl_pruning', 'erase_gender_info', 'erase_phone_type']
             ,help='Mode of drawing figure')
     args = parser.parse_args()
     eval(args.mode)()
