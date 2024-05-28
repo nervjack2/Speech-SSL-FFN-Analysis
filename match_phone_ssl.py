@@ -58,7 +58,7 @@ def main(model_pth, mfa_json, save_pth, fp, mean_std_pth, data_pth, phone_type, 
         record = [torch.zeros((N, D[i])) for i in range(12)] 
         record_n = [[0 for i in range(N*2)] for i in range(12)]
         ivector_dict = {}
-        with open('./info/ivector-2c.km') as fp:
+        with open('./info/dev-clean-ivector-2c.km') as fp:
             for key, x in zip(key_tsv_list, fp):
                 ivector_dict[key] = int(x)
                 
