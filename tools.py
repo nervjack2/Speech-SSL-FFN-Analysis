@@ -6,59 +6,18 @@ def find_ps_keys(x):
     for p in x.keys():
         layer_keys = {}
         for l in x[p].keys():
-            # Creating lookup table for each group
-            group_keys = {}
-            for g in x[p][l].keys():
-                group_keys[g] = {index: 1 for index in x[p][l][g]} 
-            # Calculating property-specific keys
             ps_keys = []
             for g1 in x[p][l].keys():
-                for index1 in x[p][l][g1]:
-                    flag = True 
-                    for g2 in x[p][l].keys():
-                        if g1 == g2:
-                            continue
-                        if index1 in group_keys[g2]:
-                            flag = False 
-                            break 
-                    if flag:
-                        ps_keys.append(index1)
-            print(f"There are {len(ps_keys)} property-specific keys for property {p} in {l} layer.")    
+                keys = set(x[p][l][g1])
+                for g2 in x[p][l].keys():
+                    if g1 == g2:
+                        continue 
+                    keys = keys - set(x[p][l][g2])
+                ps_keys += list(keys)
+            print(f"There are {len(ps_keys)} property neurons for property {p} in {l} layer.")    
             layer_keys[l] = ps_keys
         data[p] = layer_keys 
     return data 
-
-def get_DBI(data_2d, nc, s_idx=None):
-    N = data_2d.shape[0]
-    n_phone = N // nc
-    data = []
-    for i in range(nc):
-        if s_idx == None:
-            data.append(data_2d[i*n_phone:(i+1)*n_phone,:])
-        else:
-            data.append(data_2d[s_idx[i]:s_idx[i+1],:])
-    v = np.zeros((nc,2)) # Centroid
-    for i in range(nc):
-        v[i,:] = data[i].mean(axis=0)
-    d = np.zeros((nc,nc)) # Distance between centroid
-    for i in range(nc):
-        for j in range(nc):
-            d[i,j] = np.linalg.norm(v[i]-v[j])
-    s = np.zeros((nc)) # Intra-class distance
-    for i in range(nc):
-        m = len(data[i])
-        acc = 0
-        for j in range(m):
-            acc += np.linalg.norm(data[i][j,:]-v[i])
-        s[i] = acc/m
-    R = np.zeros((nc,nc))
-    for i in range(nc):
-        for j in range(nc):
-            if i != j:
-                R[i,j] = (s[i]+s[j])/d[i,j]
-    R_max = np.max(R,axis=0)
-    DB = sum(R_max)/nc
-    return DB
 
 def get_silhouette_score(data_2d, nc, s_idx=None):
     N = data_2d.shape[0]

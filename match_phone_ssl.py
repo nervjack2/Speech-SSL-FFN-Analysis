@@ -52,13 +52,14 @@ def main(model_pth, km_pth, save_pth, mean_std_pth, data_pth, extra_class, tsv_p
     print(f"Load MFA result from {len(km_dict)} utterances")
 
     N_list = {
-        'ivector-2c': N_cluster*2
+        'ivector-2c': N_cluster*2,
+        'none': N_cluster
     }
     N = N_list[extra_class]
 
+    record = [torch.zeros((N, D[i])) for i in range(12)] 
+    record_n = [[0 for i in range(N)] for i in range(12)]
     if extra_class == 'ivector-2c':
-        record = [torch.zeros((N, D[i])) for i in range(12)] 
-        record_n = [[0 for i in range(N*2)] for i in range(12)]
         ivector_dict = {}
         with open('./info/dev-clean-ivector-2c.km') as fp:
             for key, x in zip(key_tsv_list, fp):
@@ -82,7 +83,10 @@ def main(model_pth, km_pth, save_pth, mean_std_pth, data_pth, extra_class, tsv_p
             topk_indices = torch.topk(torch.abs(check_keys), tau, dim=1).indices.cpu()
             for k, indices in enumerate(topk_indices):
                 c = clusters[k]
-                if extra_class == 'ivector-2c':
+                if extra_class == 'none':
+                    record[layer_idx][c, indices] += 1 
+                    record_n[layer_idx][c] += 1
+                elif extra_class == 'ivector-2c':
                     record[layer_idx][g*N_cluster+c, indices] += 1
                     record_n[layer_idx][g*N_cluster+c] += 1
 
@@ -102,7 +106,7 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--save-pth', help='Result save path')
     parser.add_argument('-x', '--mean-std-pth', help='Mean std path')
     parser.add_argument('-d', '--data-pth', help='Dataset directory')
-    parser.add_argument('-c', '--extra-class', choices=['ivector-2c'])
+    parser.add_argument('-c', '--extra-class', choices=['ivector-2c', 'none'])
     parser.add_argument('-v', '--tsv-pth', help='.tsv path')
     args = parser.parse_args()
     main(**vars(args))
