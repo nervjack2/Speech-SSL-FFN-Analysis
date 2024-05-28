@@ -9,18 +9,20 @@ from matplotlib_venn import venn2, venn3
 
 def find_keys(pkl_dir, sigma):
     properties = ['cluster', 'ivector']
-    n_group = [1, 2]
+    n_group = [100, 2]
+    cluster_per_group = [1, 100]
     results = {}
     for p_idx, p in enumerate(properties):
         pkl_pth = os.path.join(pkl_dir, p+'.pkl')
         with open(pkl_pth, 'rb') as fp:
             data = pickle.load(fp)
         n_layer = len(data)
-        n_cluster = len(data)//n_group[p_idx]
+        # n_cluster = len(data)//n_group[p_idx]
         keys_layer = {}
         for idx in range(n_layer):
             l_data = data[idx]
             v_datas = []
+            n_cluster = cluster_per_group[p_idx]     
             for g_idx in range(n_group[p_idx]):
                 v_datas.append(l_data[n_cluster*g_idx:n_cluster*(g_idx+1)])
             keys_group = {}
