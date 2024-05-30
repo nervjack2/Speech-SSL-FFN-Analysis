@@ -183,124 +183,6 @@ def venn_ps_keys():
     venn.get_patch_by_id('001').set_color('C2') 
     plt.savefig('fig/venn-ps-keys-layer-1.png', bbox_inches='tight', dpi=200)
 
-# def row_pruning_cmp_n_ps_keys():
-#     properties = ['phone-type', 'gender']
-#     data_type = ['regular', 'all-128', 'all-all']
-#     data_pth = [f'data/{x}-row-pruning-n-ps-keys.json' for x in data_type]
-#     rows = {
-#         'regular': [512, 1024, 1536, 2048, 2560, 2688, 2816, 2944, 3072],
-#         'all-128': [512, 1024, 1536, 2048, 2560, 2688, 2816, 2944, 3072],
-#         'all-all': [598, 3072]
-#     }
-#     # Calculate density 
-#     D = 3072 
-#     density = {}
-#     for k, v in rows.items():
-#         density[k] = [i/D for i in v]
-
-#     datas = {}
-#     for k, pth in zip(data_type, data_pth):
-#         with open(pth, 'r') as fp:
-#             d = json.load(fp)
-#         datas[k] = d
-
-#     colors = {
-#         'regular': 'red', 
-#         'all-128': 'blue', 
-#         'all-all': 'green'
-#     }
-#     labels = {
-#         'regular': 'regular', 
-#         'all-128': 'proposed-128', 
-#         'all-all': 'proposed-all'
-#     }
-
-#     for dt in data_type:
-#         gender_ps = datas[dt]['gender'][::2]
-#         plt.plot(density[dt], gender_ps, color=colors[dt], marker='o', label=labels[dt])
-#         # phone_ps = datas[dt]['phone-type'][::2]
-#         # plt.plot(density[dt], phone_ps, color=colors[dt], marker='o', alpha=0.2)
-#     plt.legend()
-#     plt.xlabel('Density')
-#     plt.ylabel('Num. property-specific keys')
-#     plt.savefig('fig/row-pruning-cmp-n-ps-keys.png', bbox_inches='tight', dpi=200)
-
-# def row_pruning_cmp_score():
-#     properties = ['phone-type', 'gender']
-#     data_type = ['regular', 'all-128', 'all-all']
-#     data_pth = [f'data/{x}-row-pruning-score.json' for x in data_type]
-#     rows = {
-#         'regular': [512, 1024, 1536, 2048, 2560, 2688, 2816, 2944, 3072],
-#         'all-128': [512, 1024, 1536, 2048, 2560, 2688, 2816, 2944, 3072],
-#         'all-all': [598, 3072]
-#     }
-#     # Calculate density 
-#     D = 3072 
-#     density = {}
-#     for k, v in rows.items():
-#         density[k] = [i/D for i in v]
-
-#     datas = {}
-#     for k, pth in zip(data_type, data_pth):
-#         with open(pth, 'r') as fp:
-#             d = json.load(fp)
-#         datas[k] = d
-
-#     colors = {
-#         'regular': 'red', 
-#         'all-128': 'blue', 
-#         'all-all': 'green'
-#     }
-#     labels = {
-#         'regular': 'regular', 
-#         'all-128': 'proposed-128', 
-#         'all-all': 'proposed-all'
-#     }
-
-#     for dt in data_type:
-#         gender_score = datas[dt]['gender'][::2]
-#         plt.plot(density[dt], gender_score, color=colors[dt], marker='o', label=labels[dt])
-#         # phone_score = datas[dt]['phone-type'][::2]
-#         # plt.plot(density[dt], phone_score, color=colors[dt], marker='o', alpha=0.2)
-#     plt.legend()
-#     plt.xlabel('Density')
-#     plt.ylabel('Silhouette score')
-#     plt.savefig('fig/row-pruning-cmp-score.png', bbox_inches='tight', dpi=200)
-
-def row_pruning_regular_n_ps_keys():
-    properties = ['phone-type', 'gender', 'pitch', 'duration']
-    data_pth = 'data/regular-row-pruning-n-ps-keys.json'
-    # Setup x-ticks
-    row = [512, 1024, 1536, 2048, 2560, 2688, 2816, 2944, 3072]
-    ticks = []
-    for r in row:
-        ticks.append(f't{r}')
-        if r != 3072:
-            ticks.append(f'p{r}')
-
-    with open(data_pth, 'r') as fp:
-        v_data = json.load(fp)
-
-    color = {
-        'phone-type': 'red',
-        'gender': 'blue',
-        'pitch': 'green',
-        'duration': 'black'
-    }
-    labels = {
-        'phone-type': 'phoneme',
-        'gender': 'gender',
-        'pitch': 'pitch',
-        'duration': 'duration' 
-    }
-    for k, v in v_data.items():
-        plt.plot(range(len(ticks)), v, label=labels[k], color=color[k], marker='o')
-        plt.xticks(ticks=range(len(ticks)), labels=ticks, rotation=90)
-    plt.xlabel('Rows')
-    plt.ylabel('Num. Property-Specific Keys')
-    plt.legend()
-    plt.savefig('fig/row-pruning-regular-n-ps-keys.png', bbox_inches='tight', dpi=200)
-
 def row_pruning_pr():
     methods = ['regular-all', 'protect-all']
     per = {
@@ -427,8 +309,8 @@ def row_pruning_bar():
     plt.savefig('fig/pruning-bar.png', bbox_inches='tight', dpi=200)
 
 def ssl_pruning():
-    row_pruning_pr()
-    row_pruning_sid()
+    # row_pruning_pr()
+    # row_pruning_sid()
     row_pruning_bar()
 
 def match_prob():
@@ -444,20 +326,6 @@ def match_prob():
 def generate_colors(N):
     cmap = plt.get_cmap('gist_rainbow')
     return [cmap(1.*i/N) for i in range(N)]
-
-# def values_tsne():
-#     v_data_2d = np.load('data/values-8th-layer.npy')
-#     n_cluster = 5
-#     n_sample = 600
-#     color = generate_colors(n_cluster)
-#     sum_ = 0
-#     for idx in range(n_cluster):
-#         cluster_emb = v_data_2d[sum_:sum_+n_sample,:]
-#         plt.scatter(cluster_emb[:,0], cluster_emb[:,1], color=color[idx], label='Cluster '+str(idx))
-#         sum_ += n_sample
-#     plt.axis('off')
-#     plt.title(f'Layer 8')
-#     plt.savefig('fig/values-tsne.png', bbox_inches='tight', dpi=200)
 
 def task_specific_pr():
     methods = ['regular', 'proposed']
@@ -582,8 +450,8 @@ def task_specific_bar():
     plt.savefig('fig/task-specific-bar.png', bbox_inches='tight', dpi=200)
 
 def task_specific_pruning():
-    task_specific_pr()
-    task_specific_sid()
+    # task_specific_pr()
+    # task_specific_sid()
     task_specific_bar()
 
 def erase_gender_info():
@@ -664,9 +532,9 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--mode', 
         choices=['mds_results', 'layer_compare', 
                 'model_compare', 'layer_n_ps_compare',
-                'venn_ps_keys', 'row_pruning_regular_n_ps_keys',
-                'row_pruning_pr', 'row_pruning_sid', 'match_prob',
-                'task_specific_pruning', 'ssl_pruning', 'erase_gender_info', 'erase_phone_type']
+                'venn_ps_keys', 'match_prob',
+                'task_specific_pruning', 'ssl_pruning', 
+                'erase_gender_info', 'erase_phone_type']
             ,help='Mode of drawing figure')
     args = parser.parse_args()
     eval(args.mode)()
