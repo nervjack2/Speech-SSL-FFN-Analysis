@@ -7,15 +7,16 @@ import matplotlib.pyplot as plt
 from tools import sort_by_same_phone, sort_voiced_unvoiced, find_ps_keys
 from matplotlib_venn import venn2, venn3
 
-def find_keys(pkl_dir, sigma):
+def find_keys(pkl_dir, sigma, n):
     properties = ['cluster', 'ivector']
-    n_group = [100, 2]
-    cluster_per_group = [1, 100]
+    n_group = [n, 2]
+    cluster_per_group = [1, n]
     results = {}
     for p_idx, p in enumerate(properties):
         pkl_pth = os.path.join(pkl_dir, p+'.pkl')
         with open(pkl_pth, 'rb') as fp:
             data = pickle.load(fp)
+        print(data[0].shape)
         n_layer = len(data)
         # n_cluster = len(data)//n_group[p_idx]
         keys_layer = {}
@@ -73,9 +74,9 @@ def draw_layer_n(x, save_pth):
     plt.savefig(save_pth, bbox_inches='tight', dpi=200)
 
 
-def main(pkl_dir, save_pth, mode, sigma):
+def main(pkl_dir, save_pth, mode, sigma, nc):
     if mode == 'layer-n-compare':
-        keys = find_keys(pkl_dir, sigma)
+        keys = find_keys(pkl_dir, sigma, nc)
         draw_layer_n(keys, save_pth)
 
 if __name__ == '__main__':
@@ -84,5 +85,6 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--save-pth', help='Save path')
     parser.add_argument('-m', '--mode', help='Drawing figure mode', choices=['layer-n-compare'])
     parser.add_argument('--sigma', default=1.0, type=float)
+    parser.add_argument('--nc', default=100, type=int)
     args = parser.parse_args()
     main(**vars(args))
