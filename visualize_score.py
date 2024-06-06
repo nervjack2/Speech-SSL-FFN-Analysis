@@ -8,7 +8,8 @@ from tools import sort_by_same_phone, sort_voiced_unvoiced, get_DBI, get_silhoue
 from sklearn.manifold import MDS
 
 def get_layer_score(pkl_dir, phone_idx, split_idx):
-    properties = ['phone-type', 'gender', 'pitch', 'duration']
+    # properties = ['phone-type', 'gender', 'pitch', 'duration']
+    properties = ['phone-type', 'gender', 'pitch']
     n_cluster = [3, 2, 3, 3]
     n_phone_group = [1, 2, 3, 3]
     results = {}
@@ -94,7 +95,7 @@ def draw_score_layer_compare(pkl_dir, save_pth, phone_idx, split_idx):
 def draw_row_pruning_score(pkl_dir, save_pth, phone_idx, split_idx, layer_idx):
     properties = ['phone-type', 'gender', 'pitch', 'duration']
     # row = [512, 1024, 1536, 2048, 2560, 2688, 2816, 2944, 3072]
-    row = [2944, 3072]
+    row = [598, 3072]
     ticks = []
     pkl_dir_list = []
     for r in row:
@@ -172,6 +173,11 @@ def draw_row_pruning_score(pkl_dir, save_pth, phone_idx, split_idx, layer_idx):
         'pitch': 'green',
         'duration': 'black'
     }
+
+    with open('reproduce_figure/data/all-all-row-pruning-score.json', 'w') as fp:
+        import json 
+        json.dump(results, fp)
+
     for k, v in results.items():
         plt.plot(range(len(ticks)), v, label=k, c=color[k], marker='o')
 
@@ -182,7 +188,7 @@ def draw_row_pruning_score(pkl_dir, save_pth, phone_idx, split_idx, layer_idx):
     plt.savefig(save_pth, bbox_inches='tight', dpi=200)
 
 def draw_models_comapre(pkl_dir, save_pth, phone_idx, split_idx):
-    models_list = ['melhubert_base', 'hubert_base', 'wav2vec2_base', 'wavlm_base']
+    models_list = ['hubert_base', 'wav2vec2_base', 'wavlm_base', 'melhubert_base', 'pr', 'sid', ]
     properties = ['phone-type', 'gender', 'pitch']
     model_score = {x: [] for x in models_list}
     
@@ -192,17 +198,25 @@ def draw_models_comapre(pkl_dir, save_pth, phone_idx, split_idx):
         for p in properties:
             max_score = max(results[p])
             model_score[model].append(max_score)
+    
+    with open('reproduce_figure/data/model_score.json', 'w') as fp:
+        json.dump(model_score, fp, indent=3)
+
     color = {
         'melhubert_base': 'red',
         'hubert_base': 'blue',
         'wav2vec2_base': 'green',
-        'wavlm_base': 'black'
+        'wavlm_base': 'black',
+        'pr': 'purple',
+        'sid': 'orange',
     }
     label = {
         'melhubert_base': 'MelHuBERT',
         'hubert_base': 'HuBERT',
         'wav2vec2_base': 'Wav2vec 2.0',
-        'wavlm_base': 'WavLM'
+        'wavlm_base': 'WavLM',
+        'pr': 'MelHuBERT-PR',
+        'sid': 'MelHuBERT-SID',
     }
 
     x = np.arange(3)  # the label locations
