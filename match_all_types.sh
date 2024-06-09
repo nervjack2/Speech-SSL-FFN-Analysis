@@ -5,11 +5,13 @@ save_dir=$3
 model_dir=$4
 python_pth=$5
 
-for i in 2944 2816 2688 2560 2048 1536 1024 512;
+#for i in 2944 2816 2688 2560 2048 1536 1024 512;
+for i in 2997 2950 2918 2898;
 do
     mkdir -p $save_dir/phone-uniform-pruned-$i
     mkdir -p $save_dir/phone-uniform-$i
-    for j in phone-type gender pitch duration;
+    # for j in phone-type gender pitch duration;
+    for j in phone-type gender;
     do 
         $python_pth match_phone.py  --model-pth $model_dir/states_prune_"$i"_pruned.ckpt \
                                 --mfa-json $mfa_json \

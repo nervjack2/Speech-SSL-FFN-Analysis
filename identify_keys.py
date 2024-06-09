@@ -63,7 +63,7 @@ def draw_layer_n(x, save_pth):
         'ivector': 'C1'
     }
     label = {
-        'cluster': 'cluster', 
+        'cluster': 'cluster',
         'ivector': 'ivector'
     }
     for k, v in layer_n_ps_keys.items():
