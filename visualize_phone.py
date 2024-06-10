@@ -3,12 +3,25 @@ import json
 import numpy as np 
 import pickle
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 from tools import sort_by_same_phone, sort_voiced_unvoiced
 from sklearn.manifold import MDS
 
-def draw_mds_ivector(data, save_pth, layer):
+def generate_distinct_colors(n_colors):
+    colors = []
+    # Generate colors across the hue range in HSV color space
+    for i in np.linspace(0, 1, n_colors, endpoint=False):
+        # Fix saturation and value, vary the hue
+        hsv = (i, 0.7, 0.9)  # Adjust saturation and value for better brightness and colorfulness
+        rgb = mcolors.hsv_to_rgb(hsv)
+        # Convert the RGB from float (0,1) to hex format for general usability
+        hex_color = mcolors.to_hex(rgb)
+        colors.append(hex_color)
+    return colors
+
+def draw_mds_speaker(data, save_pth, layer, n_spk, n_spk_to_visualize):
     v_data = data[layer-1]
-    N_cluster = v_data.shape[0]//2
+    N_cluster = v_data.shape[0]//n_spk
     N_data = v_data.shape[0]
     D = v_data.shape[-1]
     random_baseline = round(D*0.01)/D
@@ -39,32 +52,33 @@ def draw_mds_ivector(data, save_pth, layer):
         v_data[i][key_visualize_idx[i]] = 1 
     # Multiscale scaling
     mds = MDS(n_components=2, random_state=0)
-    v_data_2d = mds.fit_transform(v_data)
-    color = ['red', 'blue']
-    label = ['ivector-1', 'ivector-2']
+    v_data_2d = mds.fit_transform(v_data[:n_spk_to_visualize*N_cluster,:])
+    color = generate_distinct_colors(n_spk_to_visualize)
+    label = [f"Speaker {i+1}" for i in range(n_spk_to_visualize)]
 
-    for idx in range(2):
+    for idx in range(n_spk_to_visualize):
         plt.scatter(v_data_2d[idx*N_cluster:(idx+1)*N_cluster,0], v_data_2d[idx*N_cluster:(idx+1)*N_cluster,1], c=color[idx], label=label[idx])
     
     plt.legend(loc='upper right', fontsize=6)
     plt.axis('off')
-    # plt.title(f'Layer {layer}')
     plt.savefig(save_pth, bbox_inches='tight', dpi=200)
 
 
-def main(pkl_pth, save_pth, mode, layer_n):
+def main(pkl_pth, save_pth, mode, layer_n, n_spk, n_spk_to_visualize):
     with open(pkl_pth, 'rb') as fp:
         data = pickle.load(fp) 
 
-    if mode == 'mds-ivector':
-        draw_mds_ivector(data, save_pth, layer_n)
+    if mode == 'mds-speaker':
+        draw_mds_speaker(data, save_pth, layer_n, n_spk, n_spk_to_visualize)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--pkl-pth', help='Data .pkl path')
     parser.add_argument('-s', '--save-pth', help='Save path')
     parser.add_argument('-m', '--mode', help='Drawing figure mode', 
-                    choices=['mds-ivector'])
+                    choices=['mds-speaker'])
     parser.add_argument('-l', '--layer-n', help='Layer index', type=int)
+    parser.add_argument('-n', '--n-spk', help='Number of speaker', type=int)
+    parser.add_argument('--n-spk-to-visualize', help='Number of speaker to visualize', type=int)
     args = parser.parse_args()
     main(**vars(args))
