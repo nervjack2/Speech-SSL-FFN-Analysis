@@ -268,7 +268,6 @@ def main(pkl_pth, save_pth, phone_label_pth, mode, layer_n):
     sort_phone = sorted(phone_label, key=lambda x: phone_label[x][1], reverse=True)
     sort_phone_same = sort_by_same_phone(sort_phone)
     sort_phone_unvoiced, num_type = sort_voiced_unvoiced(sort_phone_same)
-    print(sort_phone_unvoiced, num_type)
 
     n_phone = len(sort_phone)
 
@@ -319,6 +318,8 @@ def main(pkl_pth, save_pth, phone_label_pth, mode, layer_n):
         label = ['<129.03Hz', '129.03-179.78Hz', '>179.78Hz']
         # =================
         phone_name = sort_phone_unvoiced
+        num_unvoiced = num_type[-1]
+        phone_name = phone_name[:-num_unvoiced]
         phone_idx = [phone_label[x][0] for x in phone_name]
         draw_mds_pitch(data, save_pth, phone_name, layer, num_type, label, phone_idx)
     elif mode == 'keys-activated-vector-demo': 

@@ -83,9 +83,13 @@ def mds_duration(phone_name):
 
 def mds_results():
     phone_name = ['AH', 'IH', 'IY', 'EH', 'ER', 'AE', 'AY', 'EY', 'AO', 'AA', 'OW', 'UW', 'AW', 'UH', 'OY', 'N', 'D', 'R', 'L', 'DH', 'M', 'Z', 'W', 'V', 'B', 'NG', 'G', 'Y', 'JH', 'ZH', 'T', 'S', 'K', 'HH', 'F', 'P', 'SH', 'TH', 'CH']
+    phone_name_pitch = ['AH', 'IH', 'IY', 'EH', 'ER', 'AE', 'AY', 'EY', 'AO', 'AA', 'OW', 'UW', 'AW', 'UH', 'OY', 'N', 'D', 'R', 'L', 'DH', 'M', 'Z', 'W', 'V', 'B', 'NG', 'G', 'Y', 'JH', 'ZH']
     properties = ['phoneme', 'gender', 'pitch', 'duration']
     for p in properties:
-        eval(f"mds_{p}")(phone_name)
+        if p != 'pitch':
+            eval(f"mds_{p}")(phone_name)
+        else:
+            eval(f"mds_{p}")(phone_name_pitch)
 
 def layer_compare():
     with open('data/layer_score.json', 'r') as fp:
