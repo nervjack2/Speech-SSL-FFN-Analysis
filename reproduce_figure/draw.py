@@ -5,7 +5,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt 
 from matplotlib_venn import venn3
 
-sns.set()
+# sns.set()
 
 RED = '#FF5555'
 RED2 = '#FF7E7E'
@@ -106,7 +106,7 @@ def layer_compare():
         'pitch': 'pitch',
         'duration': 'duration' 
     }
-    plt.figure(figsize=(6,4))
+    plt.figure(figsize=(6,3))
     for k, v in results.items():
         if k == 'duration':
             continue
@@ -148,8 +148,8 @@ def model_compare():
         multiplier += 1
     xticks = ['phoneme', 'gender', 'pitch']
     ax.set_ylabel('Silhouette score', fontsize=15)
-    ax.set_xticks(x*0.5 + width*2.5, xticks, fontsize=13)
-    ax.legend(loc='upper left')
+    ax.set_xticks(x*0.5 + width*2.5, xticks, fontsize=14)
+    ax.legend(fontsize=13, ncol=2, framealpha=0.6)
     plt.savefig('fig/models-compare.png', dpi=200, bbox_inches='tight')
 
 def layer_n_ps_compare():
@@ -167,12 +167,12 @@ def layer_n_ps_compare():
         'pitch': 'pitch',
         'duration': 'duration'
     }
-    plt.figure(figsize=(6,4))
+    plt.figure(figsize=(6,3))
     for k, v in layer_n_ps_keys.items():
         if k == 'duration':
             continue
         plt.plot(range(1, 12+1), v, label=label[k], color=color[k], marker='o')
-    plt.legend()
+    plt.legend(fontsize=13, ncol=2, framealpha=0.9)
     plt.xlabel('Layer')
     plt.ylabel('Num. property neurons')
     plt.savefig('fig/layer-n-compare.png', bbox_inches='tight', dpi=200)
@@ -181,6 +181,7 @@ def venn_ps_keys():
     p_name = ['phoneme', 'gender', 'pitch']
     with open('data/venn_set_sizes_layer_1.json', 'r') as fp:
         set_sizes = json.load(fp)
+    plt.figure(figsize=(6,3))
     venn = venn3(subsets=set_sizes, set_labels=p_name)
     venn.get_patch_by_id('100').set_color('C0')  
     venn.get_patch_by_id('010').set_color('C1')
@@ -268,7 +269,7 @@ def row_pruning_sid():
 def row_pruning_bar():
     PR = {
         'unpruned': 8.17,
-        'protect ': 10.66,
+        'protect': 10.66,
         'baseline': 12.03,
     }
     SID = {
@@ -281,59 +282,50 @@ def row_pruning_bar():
         'protect': 0.272,
         'baseline': 0.282,
     }
+    # Converting data to lists
+    labels = ['unpruned', 'protect', 'baseline']
+    PR_values = [PR[label] for label in labels]
+    SID_values = [100-SID[label] for label in labels]
+    logF0_values = [logF0[label] for label in labels]
 
-    # Convert SID accuracy to error rate
-    SID_error = {k: 100 - v for k, v in SID.items()}
-    methods = list(PR.keys())
-    # Plotting
-    fig, ax1 = plt.subplots(figsize=(12, 6))
-    # Bar width
-    bar_width = 0.18
-    # Index for the bar locations for PR and SID
-    index_PR = np.arange(len(methods)) * 0.3  
-    index_SID = np.arange(len(methods)) * 0.3 + max(index_PR) + 0.4
-    index_f0 = np.arange(len(methods)) * 0.3 + max(index_SID) + 0.4
-    # Bar plots for PR
-    bars_PR = ax1.bar(index_PR, PR.values(), bar_width, label='PR', color='C0')
-    ax1.set_ylabel('PER (%)', c='C0')
-    ax1.set_xticks(np.concatenate([index_PR, index_SID, index_f0]))
-    ax1.tick_params(axis='y', colors='C0')
-    ax1.set_ylim(6, 13)
-    ax1.set_xticklabels(methods*3, fontsize=14)  # Explicit labels for clarity
-    ax1.legend(fontsize=15, loc='upper left', framealpha=0.8)
-    # Create a second y-axis for SID error rates
-    ax2 = ax1.twinx()
-    bars_SID = ax2.bar(index_SID, SID_error.values(), bar_width, label='SID', color='C1')
-    ax2.set_ylabel('SID ERR (%)', c='C1')
-    ax2.grid(visible=False)
-    ax2.set_ylim(34, 50)
-    ax2.tick_params(axis='y', colors='C1')
-    ax2.legend(fontsize=15, loc='upper left', bbox_to_anchor=(0,0.9), framealpha=0.8)
-    # Create a third y-axis for log f0 reconstruction mean square error 
-    ax3 = ax1.twinx()
-    ax3.spines['right'].set_position(('outward', 40))
-    ax1.spines['bottom'].set_patch_line()
-    bars_f0 = ax3.bar(index_f0, logF0.values(), bar_width, label='log F0', color='C2')
-    ax3.set_ylabel('MSE', c='C2')
-    ax3.tick_params(axis='y', colors='C2')
-    ax3.set_ylim(0.265, 0.300)
-    ax3.grid(visible=False)
-    ax3.legend(fontsize=15, loc='upper left', bbox_to_anchor=(0,0.8), framealpha=0.5)
+    # Define x-axis locations for the groups
+    x = np.arange(len(labels))
+    width = 0.7
 
-    # Function to attach a text label above each bar displaying its height
-    def autolabel(rects, ax, round_p=1):
-        for rect in rects:
-            height = round(rect.get_height(), round_p)
-            ax.annotate('{}'.format(height),
-                        xy=(rect.get_x() + rect.get_width() / 2, height),
-                        xytext=(0, 3),  # 3 points vertical offset
-                        textcoords="offset points",
-                        ha='center', va='bottom')
-                        
-    autolabel(bars_PR, ax1)
-    autolabel(bars_SID, ax2)
-    autolabel(bars_f0, ax3, round_p=3)
-    plt.savefig('fig/pruning-bar.png', bbox_inches='tight', dpi=200)
+    # Creating subplots
+    fig, ax = plt.subplots(1, 3, figsize=(5.5, 2.5))
+
+    # Plotting the data
+    bars1 = ax[0].bar(x, PR_values, width, color=['C0', 'C1', 'C2'])
+    ax[0].set_title('PR')
+    ax[0].set_ylabel('PER (%)')
+    ax[0].set_xticks([])
+    ax[0].set_xticklabels([])
+    ax[0].set_ylim(6, 13)
+
+    bars2 = ax[1].bar(x, SID_values, width, color=['C0', 'C1', 'C2'])
+    ax[1].set_title('SID')
+    ax[1].set_ylabel('EER (%)')
+    ax[1].set_xticks([])
+    ax[1].set_xticklabels([])
+    ax[1].set_ylim(34, 50)
+
+    bars3 = ax[2].bar(x, logF0_values, width, color=['C0', 'C1', 'C2'])
+    ax[2].set_title('log F0')
+    ax[2].set_ylabel('MSE')
+    ax[2].set_xticks([])
+    ax[2].set_xticklabels([])
+    ax[2].set_ylim(0.265, 0.300)
+
+    # Add legend closer to the plot
+    fig.legend([bars1[0], bars1[1], bars1[2]], labels, loc='lower center', ncol=3, bbox_to_anchor=(0.5, -0.15), fontsize=13)
+
+    # Adjust layout to prevent overlap
+    plt.tight_layout()
+
+    # Save the plot to a file
+    plot_path = './fig/pruning-bar.png'
+    plt.savefig(plot_path, bbox_inches='tight')
 
 def ssl_pruning():
     # row_pruning_pr()
@@ -443,41 +435,41 @@ def task_specific_bar():
     # Convert SID accuracy to error rate
     SID_error = {k: 100 - v for k, v in SID.items()}
     methods = list(PR.keys())
+
     # Plotting
-    fig, ax1 = plt.subplots(figsize=(10, 6))
+    fig, ax1 = plt.subplots(1, 2, figsize=(4.0, 2.5))
     # Bar width
-    bar_width = 0.18
+    bar_width = 0.7
+
     # Index for the bar locations for PR and SID
-    index_PR = np.arange(len(methods)) * 0.3  
-    index_SID = np.arange(len(methods)) * 0.3 + max(index_PR) + 0.4
+    x = np.arange(len(methods))
+
     # Bar plots for PR
-    bars_PR = ax1.bar(index_PR, PR.values(), bar_width, label='PR', color='C0')
-    ax1.set_ylabel('PER (%)', c='C0')
-    ax1.set_xticks(np.concatenate([index_PR, index_SID]))
-    ax1.tick_params(axis='y', colors='C0')
-    ax1.set_xticklabels(methods + methods, fontsize=14)  # Explicit labels for clarity
-    ax1.grid(zorder=0)
-    ax1.legend(fontsize=15, loc='upper left', framealpha=0.8)
-    # Create a second y-axis for SID error rates
-    ax2 = ax1.twinx()
-    bars_SID = ax2.bar(index_SID, SID_error.values(), bar_width, label='SID', color='C1')
-    ax2.set_ylabel('SID ERR (%)', c='C1')
-    ax2.tick_params(axis='y', colors='C1')
-    ax2.grid(visible=False)
-    ax2.set_ylim(12, 32)
-    ax2.legend(fontsize=15, loc='upper left', bbox_to_anchor=(0,0.9), framealpha=0.8)
-    # Function to attach a text label above each bar displaying its height
-    def autolabel(rects, ax):
-        for rect in rects:
-            height = round(rect.get_height(), 1)
-            ax.annotate('{}'.format(height),
-                        xy=(rect.get_x() + rect.get_width() / 2, height),
-                        xytext=(0, 3),  # 3 points vertical offset
-                        textcoords="offset points",
-                        ha='center', va='bottom')
-    autolabel(bars_PR, ax1)
-    autolabel(bars_SID, ax2)
-    plt.savefig('fig/task-specific-bar.png', bbox_inches='tight', dpi=200)
+    bars_PR = ax1[0].bar(x, PR.values(), bar_width, color=['C0', 'C1', 'C2'])
+    ax1[0].set_title('PR')
+    ax1[0].set_ylabel('PER (%)')
+    ax1[0].set_xticks([])
+    ax1[0].set_xticklabels([])
+    # ax1[0].set_ylim(0, 12)
+
+    # Bar plots for SID error
+    bars_SID = ax1[1].bar(x, SID_error.values(), bar_width, color=['C0', 'C1', 'C2'])
+    ax1[1].set_title('SID')
+    ax1[1].set_ylabel('EER (%)')
+    ax1[1].set_xticks([])
+    ax1[1].set_xticklabels([])
+    ax1[1].set_ylim(12, 32)
+
+    # Add legend closer to the plot
+    fig.legend([bars_PR[0], bars_PR[1], bars_PR[2]], methods, loc='lower center', ncol=3, bbox_to_anchor=(0.5, -0.15), fontsize=13)
+
+    # Adjust layout to prevent overlap
+    plt.tight_layout()
+
+    # Save the plot to a file
+    plot_path = './fig/task-specific-bar.png'
+    plt.savefig(plot_path, bbox_inches='tight')
+
 
 def task_specific_pruning():
     # task_specific_pr()
